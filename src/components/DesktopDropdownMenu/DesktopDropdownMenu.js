@@ -8,8 +8,8 @@ export default function SimpleMenu() {
   return (
     <Grid container style={{ display: "flex" }}>
       {categoryStrcture.map((category, key) => (
-          <Grid item>
-            <Menu key={key} category={category} />
+        <Grid item key={key}>
+            <Menu category={category} />
           </Grid>
       ))}
     </Grid>

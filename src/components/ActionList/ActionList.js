@@ -16,6 +16,7 @@ import Whatsapp from "@material-ui/icons/WhatsApp";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import ShareIcon from "@material-ui/icons/ShareOutlined";
+import ListIcon from "@material-ui/icons/ListRounded";
 import PauseCircleOutlineRoundedIcon from "@material-ui/icons/PauseCircleOutlineRounded";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import LinkIcon from "@material-ui/icons/Link";
@@ -27,6 +28,7 @@ import CloseIcon from "@material-ui/icons/Close";
 
 
 import { Image } from "../../components";
+import DialogBox from "../DialogBox/DialogBox";
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
@@ -132,6 +134,7 @@ export default function ActionList({ data, currentPlayingPosition }) {
     const { favorite } = useSelector((state) => state.favorite);
     const [present, setPresent] = useState(false);
     const [display, setDisplay] = useState(false);
+    const [playlist, setPlaylist] = useState(false);
     // const [fileType, setFileType] = useState("audio/mp3");
     const notify = (message) =>
         toast.success(message, {
@@ -236,53 +239,59 @@ export default function ActionList({ data, currentPlayingPosition }) {
                 <ClickAwayListener onClickAway={handleClose}>
                     <div>
                         {
-                        (!display) &&
-                        <>
-                            {currentPlayingPosition !== "player" && (
-                                <IconButton
-                                    disabled={downloadingIds.includes(id)}
-                                    onClick={handleDownload}
-                                    size="small"
-                                >
-                                    <CheckCircleIcon
-                                        className="check-cache-icon"
+                            (!display) &&
+                            <>
+                                {currentPlayingPosition !== "player" && (
+                                    <IconButton
+                                        disabled={downloadingIds.includes(id)}
+                                        onClick={handleDownload}
+                                        size="small"
+                                    >
+                                        <CheckCircleIcon
+                                            className="check-cache-icon"
+                                            style={
+                                                isDownloaded
+                                                    ? { color: "rgb(16, 180, 102)" }
+                                                    : { color: "gray" }
+                                            }
+                                        />
+                                    </IconButton>
+                                )}
+                                <IconButton size="small">
+                                    <a
+                                        className="download-icon-container"
+                                        data-tip="downloading"
+                                        // href={`data:${fileType},` + link}
+                                        // target="_blank"
+                                        // download={name}
+                                        onClick={() => {
+                                            // notify("downloading")
+                                            downloadResource(link, name);
+                                        }}
+                                    >
+                                        <DownloadIcon style={{ color: currentPlayingPosition === "player" ? 'white' : '#777' }} />
+                                    </a>
+                                </IconButton>
+                                <IconButton onClick={handleFavorite} size="small">
+                                    <FavoriteBorderIcon
                                         style={
-                                            isDownloaded
-                                                ? { color: "rgb(16, 180, 102)" }
-                                                : { color: "gray" }
+                                            present ? { color: "rgb(240,100,100)" } : { color: currentPlayingPosition === "player" ? "white" : "#777" }
                                         }
                                     />
                                 </IconButton>
-                            )}
-                            <IconButton size="small">
-                                <a
-                                    className="download-icon-container"
-                                    data-tip="downloading"
-                                    // href={`data:${fileType},` + link}
-                                    // target="_blank"
-                                    // download={name}
-                                    onClick={() => {
-                                        // notify("downloading")
-                                        downloadResource(link, name);
-                                    }}
+                                <IconButton
+                                    onClick={() => setDisplay(true)}
+                                    size="small"
                                 >
-                                    <DownloadIcon style={{ color: currentPlayingPosition === "player" ? 'white' : '#777' }} />
-                                </a>
-                            </IconButton>
-                            <IconButton onClick={handleFavorite} size="small">
-                                <FavoriteBorderIcon
-                                    style={
-                                        present ? { color: "rgb(240,100,100)" } : { color: currentPlayingPosition === "player" ? "white" : "#777" }
-                                    }
-                                />
-                            </IconButton>
-                            <IconButton
-                                onClick={() => setDisplay(true)}
-                                size="small"
-                            >
-                                <ShareIcon style={{ color: currentPlayingPosition === "player" ? "white" : "#777" }} />
-                            </IconButton>
-                        </>
+                                    <ShareIcon style={{ color: currentPlayingPosition === "player" ? "white" : "#777" }} />
+                                </IconButton>
+                                <IconButton
+                                    onClick={() => setPlaylist(true)}
+                                    size="small"
+                                >
+                                    <ListIcon style={{ color: currentPlayingPosition === "player" ? "white" : "#777" }} />
+                                </IconButton>
+                            </>
                         }
                         {display && (
                             <div
@@ -392,6 +401,7 @@ export default function ActionList({ data, currentPlayingPosition }) {
                 </ClickAwayListener>
             </Box>
             <ToastContainer className="notification-container-copied" />
+            <DialogBox open={playlist} handleClose={() => setPlaylist(false)} title={"Add Playlist"} data={data} />
         </>
     );
 }

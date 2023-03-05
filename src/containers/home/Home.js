@@ -51,7 +51,7 @@ export default function Home() {
   let { playing, topChart } = useSelector((state) => state.player);
 
   const { loading, totalPages, currentPage, audioList, changePage, categoryList } = useData({ offlineMode: offlineMode });
-
+  console.log('[audioList]', audioList);
   const handleChangePage = (_, page) => {
     changePage(page);
   };

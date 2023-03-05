@@ -9,8 +9,7 @@ import Search from "./containers/search";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 import FavoritePage from "./containers/favoritePage/FavoritePage";
-import {Grid} from "@material-ui/core";
-import CategorySlider from "./components/TopChart/CategorySlider";
+import Playlist from "./containers/playlist";
 
 const theme = createMuiTheme({
   typography: {
@@ -43,6 +42,9 @@ function App() {
             </Route>
             <Route exact path="/favorites">
               <FavoritePage />
+            </Route>
+            <Route exact path="/playlist">
+              <Playlist />
             </Route>
             <Route exact path="/">
               <Home />
