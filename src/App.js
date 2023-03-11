@@ -10,6 +10,7 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 import FavoritePage from "./containers/favoritePage/FavoritePage";
 import Playlist from "./containers/playlist";
+import PlaylistDetail from "./containers/playlist/PlaylistDetail";
 
 const theme = createMuiTheme({
   typography: {
@@ -45,6 +46,9 @@ function App() {
             </Route>
             <Route exact path="/playlist">
               <Playlist />
+            </Route>
+            <Route exact path="/playlist/detail">
+              <PlaylistDetail />
             </Route>
             <Route exact path="/">
               <Home />

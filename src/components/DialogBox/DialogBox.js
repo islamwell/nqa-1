@@ -1,9 +1,11 @@
-import { Box, Button, Dialog, DialogTitle, TextField } from '@material-ui/core'
+import { Box, Button, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import Image from '../Image/Image';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function DialogBox({ open, handleClose, title, data }) {
     const [playlistName, setPlaylistName] = useState('')
+    const [options, setOptions] = useState([])
     const [handleError, setHandleError] = useState({
         error: false,
         message: ''
@@ -13,7 +15,6 @@ export default function DialogBox({ open, handleClose, title, data }) {
             return setHandleError({
                 error: true,
                 message: 'Kindly enter the name first'
-
             })
         }
 
@@ -24,7 +25,7 @@ export default function DialogBox({ open, handleClose, title, data }) {
         })
 
         let localData = JSON.parse(localStorage.getItem('playlist')) || [];
-        
+
         if (localData.find(item => item[playlistName])) {
             localData.find(item => item[playlistName])[playlistName].push(data)
             localStorage.setItem('playlist', JSON.stringify(localData))
@@ -33,8 +34,8 @@ export default function DialogBox({ open, handleClose, title, data }) {
             localStorage.setItem('playlist', JSON.stringify(localData))
         }
 
-        console.log('[localData]', localData)
-
+        handleClose();
+        toast('Playlist have been saved...');
     }
 
     useEffect(() => () => {
@@ -45,6 +46,11 @@ export default function DialogBox({ open, handleClose, title, data }) {
         })
     }, [open]);
 
+    useEffect(() => {
+        let localData = JSON.parse(localStorage.getItem('playlist')) ?? [];
+        if (localData.length > 0) setOptions(() => localData.map((name) => Object.keys(name)))
+    }, [open])
+
     return (
         <Dialog onClose={handleClose} open={open} fullWidth>
             <DialogTitle>{title}</DialogTitle>
@@ -53,11 +59,31 @@ export default function DialogBox({ open, handleClose, title, data }) {
             <Box margin={2}>
                 <TextField label="Playlist" fullWidth value={playlistName} error={handleError.error} helperText={handleError.message} onChange={(event) => setPlaylistName(event.target.value)} />
             </Box>
+            <Box margin={2}>
+                {/* <FormControl variant="standard"> */}
+                <InputLabel id="demo-simple-select-standard-label">Select Playlist</InputLabel>
+                <Select
+                    fullWidth
+                    value={playlistName}
+                    onChange={(event) => setPlaylistName(event.target.value)}
+                    label="Select Playlist"
+                >
+                    <MenuItem value="">
+                        <em>Select Playlist</em>
+                    </MenuItem>
+                    {
+                        options.map(item =>
+                            <MenuItem value={item}>{item}</MenuItem>
+                        )
+                    }
+                </Select>
+                {/* </FormControl> */}
+            </Box>
             <Box gap={2} margin={2} marginY={2}>
                 <Button fullWidth variant="contained" color="primary" onClick={addSongToPlaylist}>Save</Button>
                 <Button fullWidth variant="text" onClick={handleClose}>Cancel</Button>
             </Box>
-
+            <ToastContainer className="notification-container-copied" />
         </Dialog>
     )
 }

@@ -1,7 +1,8 @@
 import React from "react";
+import { ToastContainer } from "react-toastify";
+import {Container} from "@material-ui/core";
 import TopBar from "../topBar";
 import Player from "../player";
-import {Container} from "@material-ui/core";
 import CategorySlider from "../../components/TopChart/CategorySlider";
 
 export default function Layout({ children }) {
@@ -16,6 +17,7 @@ export default function Layout({ children }) {
                 {children}
                 <Player />
             </div>
+            <ToastContainer className="notification-container-copied" />
         </div>
     );
 }
