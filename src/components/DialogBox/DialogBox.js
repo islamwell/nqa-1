@@ -27,6 +27,10 @@ export default function DialogBox({ open, handleClose, title, data }) {
         let localData = JSON.parse(localStorage.getItem('playlist')) || [];
 
         if (localData.find(item => item[playlistName])) {
+            // Check if exists
+            if (localData.find(item => item[playlistName])[playlistName].some(song => song.id === data.id)) {
+                return handleClose();
+            }
             localData.find(item => item[playlistName])[playlistName].push(data)
             localStorage.setItem('playlist', JSON.stringify(localData))
         } else {
@@ -83,7 +87,7 @@ export default function DialogBox({ open, handleClose, title, data }) {
                 <Button fullWidth variant="contained" color="primary" onClick={addSongToPlaylist}>Save</Button>
                 <Button fullWidth variant="text" onClick={handleClose}>Cancel</Button>
             </Box>
-            <ToastContainer className="notification-container-copied" />
+            <ToastContainer delay={1000} className="notification-container-copied" />
         </Dialog>
     )
 }

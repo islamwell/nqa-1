@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Box, IconButton, Paper } from "@material-ui/core";
+import { Box, Button, IconButton, Paper } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
 import { addToDowanloadingQueue } from "../../store/slices/downloadSlice";
 import { changeURL } from "../../store/slices/playerSlice";
@@ -152,8 +152,8 @@ export default function ListItem({ data, currentPlayingPosition }) {
         flexDirection="column"
         justifyContent="space-between"
       >
-        <Box display="flex" justifyContent="center" alignItems="center">
-          {/* {id === currentPlayingId && ( */}
+          <Box display="flex" justifyContent="center" alignItems="center">
+            {/* {id === currentPlayingId && ( */}
             <IconButton onClick={id === currentPlayingId ? togglePlay : handlePlay} size="small">
               {(playing && id === currentPlayingId) ? (
                 <PauseCircleOutlineRoundedIcon
@@ -167,20 +167,20 @@ export default function ListItem({ data, currentPlayingPosition }) {
                 />
               )}
             </IconButton>
-          {/* )} */}
+            {/* )} */}
 
-          <Box
-            onClick={handlePlay}
-            className={classes.title}
-            textAlign="left"
-            fontWeight="fontWeightMedium"
-            fontSize="subtitle2.fontSize"
-            ml={1}
-            pr={1}
-          >
-            {highlightName ? parse(highlightName) : name}
+            <Box
+              onClick={handlePlay}
+              className={classes.title}
+              textAlign="left"
+              fontWeight="fontWeightMedium"
+              fontSize="subtitle2.fontSize"
+              ml={1}
+              pr={1}
+            >
+              {highlightName ? parse(highlightName) : name}
+            </Box>
           </Box>
-        </Box>
 
         <ActionList data={data} currentPlayingPosition={currentPlayingPosition} />
       </Box>

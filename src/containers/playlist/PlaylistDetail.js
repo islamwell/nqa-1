@@ -1,8 +1,8 @@
-import { Box, Container, IconButton, useMediaQuery, useTheme } from "@material-ui/core";
+import { Box, Button, Container, IconButton, TextField, useMediaQuery, useTheme } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
-import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
+import CreateIcon from '@material-ui/icons/Create';
 import Pagination from "@material-ui/lab/Pagination";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,8 @@ import { Image, ListItem } from "../../components";
 import { getCategoryByNameAndSubCategoryNames } from "../../db/services";
 import { useData } from "../../hooks/useData";
 import { changeFav } from "../../store/slices/favoriteSlice";
+import { toast } from "react-toastify";
+import { updateCurrentAudioList } from "../../store/slices/playerSlice";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -58,15 +60,13 @@ export default function PlaylistDetail() {
     const classes = useStyles();
     const params = useParams();
     const { state: {item} } = useLocation();
-    console.log('[state]', item[Object.keys(item)]);
+    const [playlistItems, setPlaylistItems] = useState(item[Object.keys(item)] ?? [])
+    const [playlistName, setPlaylistName] = useState(Object.keys(item))
+    const [editable, setEditable] = useState(false)
     const theme = useTheme();
     const [categoryDetails, setCategoryDetails] = useState(null);
     const categoryId = categoryDetails?.id;
 
-    const categoryName = normalizeCategoryName(decodeURIComponent(params.category));
-    const subCategoryOneName = normalizeCategoryName(params.subCategoryOne);
-    const subCategoryTwoName = normalizeCategoryName(params.subCategoryTwo);
-    const subCategoryThreeName = normalizeCategoryName(params.subCategoryThree);
 
     const { offlineMode } = useSelector((state) => state.download);
     const { playing } = useSelector((state) => state.player);
@@ -79,14 +79,25 @@ export default function PlaylistDetail() {
         shouldSearch: !!categoryDetails,
     });
 
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+        dispatch(updateCurrentAudioList(playlistItems))
+    }, [playlistItems])
+
     const handleChangePage = (_, page) => {
         changePage(page);
     };
 
-    useEffect(() => {
-        const categoryDetails = getCategoryByNameAndSubCategoryNames(categoryName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
-        setCategoryDetails(categoryDetails);
-    }, [categoryName, subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+    const handleRemove = (index) => {
+        const localData = JSON.parse(localStorage.getItem('playlist'))
+        const currentIndex = localData.findIndex(item => item[Object.keys(item)]);
+        const updatedArray = playlistItems.filter(play => play.id !== playlistItems[index].id)
+        localData[currentIndex] = {[playlistName]: updatedArray}
+        localStorage.setItem('playlist', JSON.stringify(localData))
+        setPlaylistItems(updatedArray);
+        toast('Song removed...')
+    }
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;
 
@@ -97,32 +108,17 @@ export default function PlaylistDetail() {
         });
     }, [currentPage]);
 
-
-
-    const dispatch = useDispatch();
-    const { favorite } = useSelector((state) => state.favorite);
-    const [present, setPresent] = useState(false);
-
-    function handleFavorite() {
-        // present?setPresent(false):setPresent(true);
-        // console.log("this is the category data***********:",categoryDetails)
-        dispatch(
-            changeFav({
-                name: categoryDetails.name,
-                link: "category-link",
-                id: categoryDetails.id,
-                image: categoryDetails.image,
-                categoryId: categoryDetails.id,
-            })
-        )
+    function handleEdit() {
+        setEditable(pre => !pre)
     }
-    useEffect(() => {
-        if (favorite.find((item) => item.id === categoryDetails?.id)) {
-            setPresent(true);
-        } else {
-            setPresent(false);
-        }
-    }, [audioList, favorite, categoryDetails]);
+    
+    function handleSave () {
+        const localData = JSON.parse(localStorage.getItem('playlist'))
+        const currentIndex = localData.findIndex(item => item[Object.keys(item)]);
+        localData[currentIndex] = {[playlistName]: playlistItems}
+        localStorage.setItem('playlist', JSON.stringify(localData))
+        toast('Playlist updated')
+    }
 
     return (
         <div style={playing ? { paddingBottom: 150 } : { paddingBottom: 50 }} className={classes.root}>
@@ -131,28 +127,36 @@ export default function PlaylistDetail() {
                     <Grid item xs={12} md={4}>
                         <Paper variant="outlined" className={classes.categoryContainer}>
                             <Image className={classes.image} src={categoryDetails?.image} alt="cover_image" />
-                            <Box
+                            {!editable ? <Box
                                 textAlign="center"
                                 className={classes.title}
                                 my={3}
                                 fontSize="h6.fontSize"
                                 fontWeight="fontWeightBold"
                             >
-                                {Object.keys(item)}
-                            </Box>
-                            <IconButton onClick={handleFavorite} size="small">
-                                <FavoriteBorderIcon
-                                    style={
-                                        present ? { color: "rgb(240,100,100)" } : { color: "#777" }
-                                    }
-                                />
-                            </IconButton>
+                                {playlistName}
+                            </Box> : <TextField value={playlistName} label={'Playlist Name'} onChange={(e) => setPlaylistName(e.target.value)} />}
+                            {editable ? 
+                            <Button onClick={handleSave}>Save</Button>
+                            : <IconButton onClick={handleEdit} size="small">
+                                <CreateIcon />
+                            </IconButton>}
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={8}>
-                        {item[Object.keys(item)].map((item) => {
-                            return <ListItem currentPlayingPosition="category" key={item.id} data={item} />;
+                        {playlistItems.map((item, key) => {
+                            return (
+                                <Grid container spacing={2}>
+                                    <Grid item lg={10}>
+                                        <ListItem currentPlayingPosition="playlist" key={item.id} data={item} />
+                                    </Grid>
+                                    <Grid item lg={2}>
+                                        <Button variant="contained" onClick={(e) => handleRemove(key)} color="secondary">Remove</Button>
+                                    </Grid>
+                                </Grid>
+                            );
                         })}
+
                         {showPagination && (
                             <Box py={2} display="flex" justifyContent="flex-end">
                                 <Pagination
