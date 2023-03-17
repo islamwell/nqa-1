@@ -87,7 +87,7 @@ export default function DialogBox({ open, handleClose, title, data }) {
                 <Button fullWidth variant="contained" color="primary" onClick={addSongToPlaylist}>Save</Button>
                 <Button fullWidth variant="text" onClick={handleClose}>Cancel</Button>
             </Box>
-            <ToastContainer delay={1000} className="notification-container-copied" />
+            <ToastContainer autoClose={1000} className="notification-container-copied" />
         </Dialog>
     )
 }

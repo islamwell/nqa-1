@@ -40,21 +40,19 @@ export default function Playlist() {
                 >
                     Playlists
                 </Box>
-                <Grid container spacing={2} className="playlist-container">
+                <Grid container spacing={4} className="playlist-container">
                     {
                         data.map((item, key) => {
                             return (
                                 <Grid item className={classes.item} key={'playlist-' + key} onClick={() => history.push('/playlist/detail', {
-                                    item
+                                    item, index: key
                                 })} xs={6} lg={3} sm={6} md={4}>
                                     <Paper variant="outlined" className={classes.categoryContainer}>
                                         <Box>
                                             <Image src={'http://nqapp.nurulquran.com/images/www/ic_music_node.png'} className={classes.image} />
                                         </Box>
                                         <Box textAlign="center" textOverflow="ellipsis" overflow="hidden" py={1} fontSize={12}>
-                                            {/* {item[Object.keys(item)]} */}
                                             {Object.keys(item)[0]}
-                                            {/* {JSON.stringify(Object.keys(item)[0])} */}
                                         </Box>
                                     </Paper>
                                 </Grid>)

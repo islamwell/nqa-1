@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import { makeStyles } from "@material-ui/core/styles";
-import { Box, IconButton, Paper, useMediaQuery } from "@material-ui/core";
+import { Box, Button, IconButton, Paper, useMediaQuery } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
 import { addToDowanloadingQueue } from "../../store/slices/downloadSlice";
 import { changeURL } from "../../store/slices/playerSlice";
@@ -88,7 +88,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function ActionList({ data, currentPlayingPosition }) {
+export default function ActionList({ data, currentPlayingPosition, children }) {
     const dispatch = useDispatch();
     const [isDownloaded, setIsDownloaded] = useState(false);
     const { downloadingIds } = useSelector((state) => state.download);
@@ -235,7 +235,7 @@ export default function ActionList({ data, currentPlayingPosition }) {
 
     return (
         <>
-            <Box display="flex" alignItems="center" justifyContent="flex-start" gridGap={6} style={{ position: 'relative', marginTop: (sm && currentPlayingPosition !== 'player') ? '0px' : '' }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" gridGap={6} style={{ position: 'relative', marginTop: (sm && currentPlayingPosition !== 'player') ? '0px' : '' }}>
                 <ClickAwayListener onClickAway={handleClose}>
                     <div>
                         {
@@ -399,8 +399,9 @@ export default function ActionList({ data, currentPlayingPosition }) {
                         )}
                     </div>
                 </ClickAwayListener>
+                {children}
             </Box>
-            <ToastContainer className="notification-container-copied" />
+            <ToastContainer autoClose={1000} className="notification-container-copied" />
             <DialogBox open={playlist} handleClose={() => setPlaylist(false)} title={"Add Playlist"} data={data} />
         </>
     );

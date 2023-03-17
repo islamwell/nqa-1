@@ -84,7 +84,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ListItem({ data, currentPlayingPosition }) {
+export default function ListItem({ data, currentPlayingPosition, children }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [isDownloaded, setIsDownloaded] = useState(false);
@@ -146,11 +146,12 @@ export default function ListItem({ data, currentPlayingPosition }) {
     <Paper variant="outlined" className={classes.mainContainer} style={{ backgruondColor: 'red' }}>
       <Image src={image} className={classes.image} />
       <Box
-        pl={1}
+        px={1}
         py={1}
         display="flex"
         flexDirection="column"
         justifyContent="space-between"
+        width={'100%'}
       >
           <Box display="flex" justifyContent="center" alignItems="center">
             {/* {id === currentPlayingId && ( */}
@@ -182,9 +183,9 @@ export default function ListItem({ data, currentPlayingPosition }) {
             </Box>
           </Box>
 
-        <ActionList data={data} currentPlayingPosition={currentPlayingPosition} />
+        <ActionList data={data} currentPlayingPosition={currentPlayingPosition} children={children} />
       </Box>
-      <ToastContainer className="notification-container-copied" />
+      <ToastContainer autoClose={1000} className="notification-container-copied" />
     </Paper>
   );
 }

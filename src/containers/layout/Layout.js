@@ -17,7 +17,7 @@ export default function Layout({ children }) {
                 {children}
                 <Player />
             </div>
-            <ToastContainer className="notification-container-copied" />
+            <ToastContainer autoClose={1000} className="notification-container-copied" />
         </div>
     );
 }

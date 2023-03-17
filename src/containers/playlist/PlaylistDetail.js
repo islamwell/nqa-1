@@ -6,7 +6,7 @@ import CreateIcon from '@material-ui/icons/Create';
 import Pagination from "@material-ui/lab/Pagination";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import "swiper/components/pagination/pagination.min.css";
 import "swiper/swiper.min.css";
 import { Image, ListItem } from "../../components";
@@ -14,6 +14,7 @@ import { getCategoryByNameAndSubCategoryNames } from "../../db/services";
 import { useData } from "../../hooks/useData";
 import { changeFav } from "../../store/slices/favoriteSlice";
 import { toast } from "react-toastify";
+import CloseRounded from '@material-ui/icons/CloseRounded';
 import { updateCurrentAudioList } from "../../store/slices/playerSlice";
 
 const useStyles = makeStyles((theme) => ({
@@ -59,7 +60,8 @@ const normalizeCategoryName = (name) => {
 export default function PlaylistDetail() {
     const classes = useStyles();
     const params = useParams();
-    const { state: {item} } = useLocation();
+    const history = useHistory();
+    const { state: {item, index} } = useLocation();
     const [playlistItems, setPlaylistItems] = useState(item[Object.keys(item)] ?? [])
     const [playlistName, setPlaylistName] = useState(Object.keys(item))
     const [editable, setEditable] = useState(false)
@@ -96,7 +98,7 @@ export default function PlaylistDetail() {
         localData[currentIndex] = {[playlistName]: updatedArray}
         localStorage.setItem('playlist', JSON.stringify(localData))
         setPlaylistItems(updatedArray);
-        toast('Song removed...')
+        toast('Audio removed...')
     }
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;
@@ -114,10 +116,22 @@ export default function PlaylistDetail() {
     
     function handleSave () {
         const localData = JSON.parse(localStorage.getItem('playlist'))
-        const currentIndex = localData.findIndex(item => item[Object.keys(item)]);
-        localData[currentIndex] = {[playlistName]: playlistItems}
+        if (localData.find(audio => audio[playlistName])) {
+        handleEdit()
+        return toast('Name already exists!')
+        }
+        localData[index] = {[playlistName]: playlistItems}
         localStorage.setItem('playlist', JSON.stringify(localData))
         toast('Playlist updated')
+        handleEdit()
+    }
+
+    function handleDelete () {
+        const localData = JSON.parse(localStorage.getItem('playlist'))
+        localData.splice(index, 1);
+        localStorage.setItem('playlist', JSON.stringify(localData))
+        toast('Playlist deleted')
+        history.goBack()
     }
 
     return (
@@ -137,7 +151,11 @@ export default function PlaylistDetail() {
                                 {playlistName}
                             </Box> : <TextField value={playlistName} label={'Playlist Name'} onChange={(e) => setPlaylistName(e.target.value)} />}
                             {editable ? 
-                            <Button onClick={handleSave}>Save</Button>
+                            <Box>
+                            <Button onClick={handleSave} color="primary">Save</Button>
+                            <Button onClick={handleDelete} color="secondary">Delete</Button>
+
+                            </Box>
                             : <IconButton onClick={handleEdit} size="small">
                                 <CreateIcon />
                             </IconButton>}
@@ -146,15 +164,13 @@ export default function PlaylistDetail() {
                     <Grid item xs={12} md={8}>
                         {playlistItems.map((item, key) => {
                             return (
-                                <Grid container spacing={2}>
-                                    <Grid item lg={10}>
-                                        <ListItem currentPlayingPosition="playlist" key={item.id} data={item} />
-                                    </Grid>
-                                    <Grid item lg={2}>
-                                        <Button variant="contained" onClick={(e) => handleRemove(key)} color="secondary">Remove</Button>
-                                    </Grid>
-                                </Grid>
-                            );
+                                <ListItem currentPlayingPosition="playlist" key={item.id} data={item} 
+                                children={
+                                        <Button variant="contained" onClick={(e) => handleRemove(key)} color="secondary">
+                                            <CloseRounded/>
+                                        </Button>
+                                }/>                             
+                            )
                         })}
 
                         {showPagination && (
