@@ -3,6 +3,7 @@ import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 import CreateIcon from '@material-ui/icons/Create';
+import ShuffleIcon from '@material-ui/icons/Shuffle';
 import Pagination from "@material-ui/lab/Pagination";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -69,6 +70,12 @@ export default function PlaylistDetail() {
     const [categoryDetails, setCategoryDetails] = useState(null);
     const categoryId = categoryDetails?.id;
 
+    useEffect(() => {
+        let localData = JSON.parse(localStorage.getItem('playlist'));
+        localData[index] = {[playlistName]: playlistItems}
+        localStorage.setItem('playlist', JSON.stringify(localData))
+    }, [playlistItems, index, playlistName])
+
 
     const { offlineMode } = useSelector((state) => state.download);
     const { playing } = useSelector((state) => state.player);
@@ -134,6 +141,23 @@ export default function PlaylistDetail() {
         history.goBack()
     }
 
+    function handleShuffle(array = []) {
+        var currentIndex = array?.length, randomIndex;
+        // While there remain elements to shuffle.
+        
+        while (currentIndex !== 0) {
+            // Pick a remaining element.
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            
+            // And swap it with the current element.
+            // eslint-disable-next-line no-sequences
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        
+        setPlaylistItems(array)
+    }
+
     return (
         <div style={playing ? { paddingBottom: 150 } : { paddingBottom: 50 }} className={classes.root}>
             <Container maxWidth="md">
@@ -141,7 +165,9 @@ export default function PlaylistDetail() {
                     <Grid item xs={12} md={4}>
                         <Paper variant="outlined" className={classes.categoryContainer}>
                             <Image className={classes.image} src={categoryDetails?.image} alt="cover_image" />
-                            {!editable ? <Box
+                            
+                            {!editable ? 
+                            <Box
                                 textAlign="center"
                                 className={classes.title}
                                 my={3}
@@ -149,16 +175,25 @@ export default function PlaylistDetail() {
                                 fontWeight="fontWeightBold"
                             >
                                 {playlistName}
-                            </Box> : <TextField value={playlistName} label={'Playlist Name'} onChange={(e) => setPlaylistName(e.target.value)} />}
+                            </Box> : 
+                            <TextField value={playlistName} onKeyDown={e => e.key === "Enter" && handleSave() } label={'Playlist Name'} onChange={(e) => setPlaylistName(e.target.value)} />}
+                            
                             {editable ? 
                             <Box>
                             <Button onClick={handleSave} color="primary">Save</Button>
                             <Button onClick={handleDelete} color="secondary">Delete</Button>
 
                             </Box>
-                            : <IconButton onClick={handleEdit} size="small">
+                            : 
+                            <Box display={'flex'}>
+                            <IconButton onClick={handleEdit} size="small">
                                 <CreateIcon />
-                            </IconButton>}
+                            </IconButton>
+                            <IconButton onClick={() => handleShuffle([...playlistItems])} size="small">
+                                <ShuffleIcon />
+                            </IconButton>
+                            </Box>
+                            }
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={8}>

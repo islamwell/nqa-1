@@ -61,7 +61,10 @@ export default function DialogBox({ open, handleClose, title, data }) {
             <Image src={data?.image} />
             <Box as="p" textAlign={'center'} paddingTop={3}>{data?.name}</Box>
             <Box margin={2}>
-                <TextField label="Playlist" fullWidth value={playlistName} error={handleError.error} helperText={handleError.message} onChange={(event) => setPlaylistName(event.target.value)} />
+                <TextField label="Playlist" fullWidth value={playlistName} onKeyDown={e => {if (e.key === "Enter") { 
+                    addSongToPlaylist();
+                    handleClose();
+                    }}} error={handleError.error} helperText={handleError.message} onChange={(event) => setPlaylistName(event.target.value)} />
             </Box>
             <Box margin={2}>
                 {/* <FormControl variant="standard"> */}
@@ -76,8 +79,8 @@ export default function DialogBox({ open, handleClose, title, data }) {
                         <em>Select Playlist</em>
                     </MenuItem>
                     {
-                        options.map(item =>
-                            <MenuItem value={item}>{item}</MenuItem>
+                        options.map((item, index) =>
+                            <MenuItem value={item} key={`option--${index}`}>{item}</MenuItem>
                         )
                     }
                 </Select>
@@ -85,7 +88,7 @@ export default function DialogBox({ open, handleClose, title, data }) {
             </Box>
             <Box gap={2} margin={2} marginY={2}>
                 <Button fullWidth variant="contained" color="primary" onClick={addSongToPlaylist}>Save</Button>
-                <Button fullWidth variant="text" onClick={handleClose}>Cancel</Button>
+                <Button fullWidth variant="text" onClick={() => handleClose()}>Cancel</Button>
             </Box>
             <ToastContainer autoClose={1000} className="notification-container-copied" />
         </Dialog>
