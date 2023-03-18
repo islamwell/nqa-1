@@ -12,7 +12,7 @@ export default function DialogBox({ open = false, handleClose, title, data }) {
     })
 
     const addSongToPlaylist = () => {
-        console.log('[addSongToPlaylist]')
+        // console.log('[addSongToPlaylist]')
         if (playlistName.length < 1) {
             return setHandleError({
                 error: true,

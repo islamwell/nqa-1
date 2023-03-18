@@ -123,7 +123,6 @@ export default function PlaylistDetail() {
     
     function handleSave () {
         if (playlistName.length > 0) {
-            console.log('omer')
             const localData = JSON.parse(localStorage.getItem('playlist'))
             if (!!localData.find(audio => audio[playlistName])) {
                 toast('Name already exists!')
