@@ -1,6 +1,6 @@
-import React from "react";
 import { ToastContainer } from "react-toastify";
 import {Container} from "@material-ui/core";
+import React, { useState } from "react";
 import TopBar from "../topBar";
 import Player from "../player";
 import CategorySlider from "../../components/TopChart/CategorySlider";
@@ -8,7 +8,7 @@ import CategorySlider from "../../components/TopChart/CategorySlider";
 export default function Layout({ children }) {
     return (
         <div>
-            <TopBar />
+            <TopBar/>
             <Container maxWidth="md">
               {/* <TopChart data={topChart} getMore={getMore} /> */}
               <CategorySlider/>

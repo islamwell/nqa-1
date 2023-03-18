@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Grid, Paper, Breadcrumbs, Link, IconButton } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { changeURL } from "../../store/slices/playerSlice";
 import Image from "../Image";
 import Slider from "react-slick";
@@ -12,6 +12,7 @@ import { useHistory } from "react-router-dom";
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import Home from "@material-ui/icons/Home";
+import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
 
 
 
@@ -96,6 +97,7 @@ export default function CategorySlider({ data, getMore }) {
   const [history, setHistory] = useState([{id: 0, name: "Home"}]);
   const browserHistory = useHistory();
   const [isSubCatVisible, setIsSubCatVisible] = useState(true);
+  const {subCatsVisible} = useSelector((state) => state.favorite);
 
   const handlePlay = (item) => {
     dispatch(
@@ -225,6 +227,11 @@ export default function CategorySlider({ data, getMore }) {
                 <Box>
                   <Image 
                     onClick={() => {
+                      dispatch(
+                        changeSubCatsVisible({
+                          subCatsVisible: true
+                        })
+                      )
                       setCurrCategory(item)
                       !isSubCatVisible && setIsSubCatVisible(true)
                     }} 
@@ -239,7 +246,7 @@ export default function CategorySlider({ data, getMore }) {
           </Slider>
           </div>
       {
-        subCategories.length > 0?
+        subCategories.length > 0 && subCatsVisible?
         <>
         <Box className={classes.title} mb={3} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
             <Breadcrumbs >

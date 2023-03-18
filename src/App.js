@@ -29,8 +29,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
-        <Layout>
-          
+        <Layout>    
           <Switch>
             <Route path="/category/:category/:subCategoryOne?/:subCategoryTwo?/:subCategoryThree?">
               <Catergory />

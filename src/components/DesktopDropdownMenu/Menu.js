@@ -7,10 +7,12 @@ import Paper from "@material-ui/core/Paper";
 import Popper from "@material-ui/core/Popper";
 import { makeStyles } from "@material-ui/core/styles";
 import React, { useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { getSubCategoryIds, getSubCategoryNamesByIds } from '../../db/services';
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 import SubMenu from "./SubMenu";
+import {changeSubCatsVisible} from "../../store/slices/favoriteSlice";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -47,6 +49,8 @@ export default function Menu({ category }) {
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef(null);
     const history = useHistory();
+    const dispatch = useDispatch();
+
 
     const handleToggle = () => {
         setOpen((prevOpen) => !prevOpen);
@@ -78,6 +82,13 @@ export default function Menu({ category }) {
     }, [open]);
 
     const handleSelectCategory = ({ id }) => {
+        dispatch(
+            changeSubCatsVisible(
+                {
+                    subCatsVisible: false
+                }
+            )
+        )
         navigateToCategory(id, history);
         setOpen(false);
     };
