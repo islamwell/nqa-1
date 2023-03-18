@@ -97,8 +97,8 @@ export default function Home() {
             <Box className={classes.title} mb={3} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
               Recently Added
             </Box>
-            {audioList.map((item) => {
-              return <ListItem currentPlayingPosition="home" key={item.id} data={item} />;
+            {audioList.map((item, key) => {
+              return <ListItem currentPlayingPosition="home" key={key} data={item} />;
             })}
             {showPagination && (
               <Box py={2} display="flex" justifyContent="flex-end">

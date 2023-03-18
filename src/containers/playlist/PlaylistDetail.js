@@ -74,7 +74,7 @@ export default function PlaylistDetail() {
         let localData = JSON.parse(localStorage.getItem('playlist'));
         localData[index] = {[playlistName]: playlistItems}
         localStorage.setItem('playlist', JSON.stringify(localData))
-    }, [playlistItems, index, playlistName])
+    }, [playlistItems, index])
 
 
     const { offlineMode } = useSelector((state) => state.download);
@@ -122,15 +122,21 @@ export default function PlaylistDetail() {
     }
     
     function handleSave () {
-        const localData = JSON.parse(localStorage.getItem('playlist'))
-        if (localData.find(audio => audio[playlistName])) {
-        handleEdit()
-        return toast('Name already exists!')
+        if (playlistName.length > 0) {
+            console.log('omer')
+            const localData = JSON.parse(localStorage.getItem('playlist'))
+            if (!!localData.find(audio => audio[playlistName])) {
+                toast('Name already exists!')
+            } else {
+                localData[index] = {[playlistName]: playlistItems}
+                localStorage.setItem('playlist', JSON.stringify(localData))
+                toast('Playlist updated')
+                handleEdit();
+            }
+
+        } else {
+            toast('Playlist must need a name')
         }
-        localData[index] = {[playlistName]: playlistItems}
-        localStorage.setItem('playlist', JSON.stringify(localData))
-        toast('Playlist updated')
-        handleEdit()
     }
 
     function handleDelete () {

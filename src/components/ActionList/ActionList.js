@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import { makeStyles } from "@material-ui/core/styles";
 import { Box, Button, IconButton, Paper, useMediaQuery } from "@material-ui/core";
@@ -29,6 +29,7 @@ import CloseIcon from "@material-ui/icons/Close";
 
 import { Image } from "../../components";
 import DialogBox from "../DialogBox/DialogBox";
+import { useMemo } from "react";
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
@@ -233,6 +234,12 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
         setDisplay(false)
     }
 
+    const handleDialog = useCallback(() => {
+        setPlaylist(false);
+    },[])
+
+    const DialogBoxMemo = useMemo(() => <DialogBox open={playlist} handleClose={handleDialog} title={"Add Playlist"} data={data} />, [data, handleDialog, playlist])
+
     return (
         <>
             <Box display="flex" alignItems="center" justifyContent="space-between" gridGap={6} style={{ position: 'relative', marginTop: (sm && currentPlayingPosition !== 'player') ? '0px' : '' }}>
@@ -401,8 +408,9 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                 </ClickAwayListener>
                 {children}
             </Box>
+            {/* <DialogBox open={playlist} handleClose={handleDialog} title={"Add Playlist"} data={data} /> */}
+            {DialogBoxMemo}
             <ToastContainer autoClose={1000} className="notification-container-copied" />
-            <DialogBox open={playlist} handleClose={() => setPlaylist(false)} title={"Add Playlist"} data={data} />
         </>
     );
 }
