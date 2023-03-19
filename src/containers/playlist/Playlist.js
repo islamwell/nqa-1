@@ -1,7 +1,6 @@
 import { Avatar, Box, Grid, Paper, makeStyles } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
-import Image from '../../components/Image/Image';
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -47,14 +46,14 @@ export default function Playlist() {
                 >
                     Playlists
                 </Box>
-                <Grid container spacing={4} className="playlist-container">
+                <Grid container spacing={6} className="playlist-container">
                     {
                         data.map((item, key) => {
                             return (
-                                <Grid item className={classes.item} key={'playlist-' + key} onClick={() => history.push('/playlist/detail', {
+                                <Grid item className={classes.item}  key={'playlist-' + key} onClick={() => history.push('/playlist/detail', {
                                     item, index: key
-                                })} xs={6} lg={3} sm={6} md={4}>
-                                    <Paper variant="outlined" className={classes.playlistContainer}>
+                                })} xs={6} lg={4} sm={6} md={4}>
+                                    <Paper variant="elevation" elevation={6} className={classes.playlistContainer}>
                                         <Box display={'flex'} justifyContent={'center'}>
                                             <Avatar className={classes.image}>{(Object.keys(item)[0].split('')[0]).toUpperCase()}</Avatar>
                                         </Box>
@@ -67,17 +66,6 @@ export default function Playlist() {
                     }
                 </Grid>
             </Grid>
-            {/* <Grid item xs={12} md={4}>
-              <Box
-                  className={classes.title}
-                  mb={3}
-                  fontSize="h4.fontSize"
-                  fontWeight="fontWeightBold"
-              >
-                  Cached
-              </Box>
-              <Cache />
-          </Grid> */}
         </div>
     )
 }
