@@ -1,4 +1,4 @@
-import { Box, Button, Container, IconButton, TextField, useMediaQuery, useTheme } from "@material-ui/core";
+import { Avatar, Box, Button, Container, IconButton, TextField, useMediaQuery, useTheme } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
@@ -24,6 +24,11 @@ const useStyles = makeStyles((theme) => ({
         backgroundColor: "#f7f7f7",
         minHeight: `calc(100vh - 120px)`,
         padding: theme.spacing(5, 0, 10, 0),
+    },
+
+    avatar: {
+        height: 150,
+        width: 150
     },
 
     image: {
@@ -169,8 +174,8 @@ export default function PlaylistDetail() {
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
                         <Paper variant="outlined" className={classes.categoryContainer}>
-                            <Image className={classes.image} src={categoryDetails?.image} alt="cover_image" />
-                            
+                            {/* <Image className={classes.image} src={categoryDetails?.image} alt="cover_image" /> */}
+                            <Avatar className={classes.avatar}>{(String(playlistName)?.split('')[0]).toUpperCase()}</Avatar>
                             {!editable ? 
                             <Box
                                 textAlign="center"

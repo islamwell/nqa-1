@@ -1,4 +1,4 @@
-import { Box, Grid, Paper, makeStyles } from '@material-ui/core'
+import { Avatar, Box, Grid, Paper, makeStyles } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import Image from '../../components/Image/Image';
@@ -14,6 +14,13 @@ const useStyles = makeStyles((theme) => ({
     },
     item: {
         cursor: 'pointer'
+    },
+    image: {
+        height: 150,
+        width: 150,
+    },
+    playlistContainer: {
+        padding: 10
     }
 }));
 
@@ -47,9 +54,9 @@ export default function Playlist() {
                                 <Grid item className={classes.item} key={'playlist-' + key} onClick={() => history.push('/playlist/detail', {
                                     item, index: key
                                 })} xs={6} lg={3} sm={6} md={4}>
-                                    <Paper variant="outlined" className={classes.categoryContainer}>
-                                        <Box>
-                                            <Image src={'http://nqapp.nurulquran.com/images/www/ic_music_node.png'} className={classes.image} />
+                                    <Paper variant="outlined" className={classes.playlistContainer}>
+                                        <Box display={'flex'} justifyContent={'center'}>
+                                            <Avatar className={classes.image}>{(Object.keys(item)[0].split('')[0]).toUpperCase()}</Avatar>
                                         </Box>
                                         <Box textAlign="center" textOverflow="ellipsis" overflow="hidden" py={1} fontSize={12}>
                                             {Object.keys(item)[0]}
