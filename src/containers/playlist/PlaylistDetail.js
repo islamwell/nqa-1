@@ -17,6 +17,7 @@ import { changeFav } from "../../store/slices/favoriteSlice";
 import { toast } from "react-toastify";
 import CloseRounded from '@material-ui/icons/CloseRounded';
 import { updateCurrentAudioList } from "../../store/slices/playerSlice";
+import { nameFormat } from "../../utils";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -28,7 +29,9 @@ const useStyles = makeStyles((theme) => ({
 
     avatar: {
         height: 150,
-        width: 150
+        width: 150,
+        background: `radial-gradient(circle at 50% 50%, #000000 0%, #10373C 12%, #005EFF 48%, #D4E3F7 74%, #FFFFFF 100%)`
+
     },
 
     image: {
@@ -175,7 +178,7 @@ export default function PlaylistDetail() {
                     <Grid item xs={12} md={4}>
                         <Paper variant="outlined" className={classes.categoryContainer}>
                             {/* <Image className={classes.image} src={categoryDetails?.image} alt="cover_image" /> */}
-                            <Avatar className={classes.avatar}>{(String(playlistName)?.split('')[0]).toUpperCase()}</Avatar>
+                            <Avatar className={classes.avatar}>{nameFormat(String(playlistName))}</Avatar>
                             {!editable ? 
                             <Box
                                 textAlign="center"

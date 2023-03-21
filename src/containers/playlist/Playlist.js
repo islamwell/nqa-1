@@ -1,7 +1,7 @@
 import { Avatar, Box, Grid, Paper, makeStyles } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
-
+import {nameFormat} from '../../utils'
 const useStyles = makeStyles((theme) => ({
     title: {
         color: "rgb(16, 107, 102)",
@@ -17,6 +17,7 @@ const useStyles = makeStyles((theme) => ({
     image: {
         height: 150,
         width: 150,
+        background: `radial-gradient(circle at 50% 50%, #000000 0%, #10373C 12%, #005EFF 48%, #D4E3F7 74%, #FFFFFF 100%)`
     },
     playlistContainer: {
         padding: 10
@@ -55,7 +56,7 @@ export default function Playlist() {
                                 })} xs={6} lg={4} sm={6} md={4}>
                                     <Paper variant="elevation" elevation={6} className={classes.playlistContainer}>
                                         <Box display={'flex'} justifyContent={'center'}>
-                                            <Avatar className={classes.image}>{(Object.keys(item)[0].split('')[0]).toUpperCase()}</Avatar>
+                                            <Avatar className={classes.image}>{nameFormat(Object.keys(item)[0])}</Avatar>
                                         </Box>
                                         <Box textAlign="center" textOverflow="ellipsis" overflow="hidden" py={1} fontSize={12}>
                                             {Object.keys(item)[0]}
