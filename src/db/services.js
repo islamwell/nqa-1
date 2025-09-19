@@ -58,7 +58,7 @@ export const getAudioByCategory = async (categoryId, page) => {
     try {
         const allItems = await db.table("audioList").limit(HARD_LIMIT).toArray();
         let filtered = allItems.filter((item) => {
-            return item.category_id === categoryId;
+            return String(item.category_id) === String(categoryId);
         });
         if (allItems.length === HARD_LIMIT) {
             // We didn't get all data in first try.
@@ -66,7 +66,7 @@ export const getAudioByCategory = async (categoryId, page) => {
             const rest = await db
                 .table("audioList")
                 .offset(HARD_LIMIT)
-                .filter((item) => item.category_id === categoryId)
+                .filter((item) => String(item.category_id) === String(categoryId))
                 .toArray();
             filtered = filtered.concat(rest);
         }
@@ -220,11 +220,21 @@ const normalizeCategoryName = (categoryName) => {
 };
 
 export const getSubCategoryIds = (categoryId, subCategoryIds) => {
-    let category = getCategoryById(categoryId);
+    console.log(categoryId, subCategoryIds, 'categoryId, subCategoryIds');
+    if (!Array.isArray(subCategoryIds)) {
+        subCategoryIds = [];
+    }
+
+    const category = getCategoryById(categoryId);
+
+    if (!category) {
+        return { category: null, subCategoryIds };
+    }
+
     subCategoryIds.push(category.id);
 
-    if (category.parentId !== '0') {
-        category = getSubCategoryIds(category.parentId, subCategoryIds);
+    if (category.parentId && category.parentId !== '0') {
+        return getSubCategoryIds(category.parentId, subCategoryIds);
     }
 
     return { category, subCategoryIds };
