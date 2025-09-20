@@ -110,7 +110,7 @@ const recursivSearchById = (categories, id) => {
     let category = undefined;
 
     for (let i = 0; i < categories.length; i++) {
-        if (categories[i].id === id) {
+        if (String(categories[i].id) === String(id)) {
             return (category = categories[i]);
         } else if (categories[i].subCategories) {
             const _category = recursivSearchById(categories[i].subCategories, id);
@@ -233,8 +233,10 @@ export const getSubCategoryIds = (categoryId, subCategoryIds) => {
 
     subCategoryIds.push(category.id);
 
-    if (category.parentId && category.parentId !== '0') {
-        return getSubCategoryIds(category.parentId, subCategoryIds);
+    const parentId = category.parentId !== undefined && category.parentId !== null ? String(category.parentId) : '0';
+
+    if (parentId && parentId !== '0') {
+        return getSubCategoryIds(parentId, subCategoryIds);
     }
 
     return { category, subCategoryIds };
@@ -256,8 +258,12 @@ export const getSubCategoryNamesByIds = (subCategoryIds) => {
 export const getRootCategory = (categoryId) => {
     let category = getCategoryById(categoryId);
 
-    if (category.parentId !== '0') {
-        category = getCategoryById(category.parentId);
+    if (!category) return null;
+
+    while (category && category.parentId && String(category.parentId) !== '0') {
+        const parent = getCategoryById(category.parentId);
+        if (!parent) break;
+        category = parent;
     }
 
     return category;
