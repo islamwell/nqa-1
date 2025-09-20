@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Box, Paper } from "@material-ui/core";
+import { Box, Paper, IconButton } from "@material-ui/core";
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { useDispatch, useSelector } from "react-redux";
 import { changeURL } from "../../store/slices/playerSlice";
 import Image from "../Image";
@@ -8,15 +10,14 @@ import Image from "../Image";
 const useStyles = makeStyles((theme) => ({
     mainContainer: {
         borderRadius: 10,
-        maxHeight: 400,
-        overflowY: "scroll",
 
         [theme.breakpoints.down("sm")]: {
             padding: theme.spacing(5),
         },
 
         [theme.breakpoints.up("sm")]: {
-            padding: theme.spacing(3),
+            paddingInline: theme.spacing(3),
+            paddingBlock: theme.spacing(2),
         },
     },
 
@@ -35,6 +36,20 @@ export default function RecentlyPlayed() {
     const classes = useStyles();
     const dispatch = useDispatch();
     const { recentlyPlayed } = useSelector((state) => state.player);
+    const itemsPerPage = 5;
+    const [page, setPage] = useState(1);
+    const noOfPages = Math.max(1, Math.ceil(recentlyPlayed.length / itemsPerPage));
+    const showPagination = noOfPages > 1;
+
+    useEffect(() => {
+        const newNoOfPages = Math.max(1, Math.ceil(recentlyPlayed.length / itemsPerPage));
+        if (page > newNoOfPages) {
+            setPage(newNoOfPages);
+        }
+        if (recentlyPlayed.length > 0 && page < 1) {
+            setPage(1);
+        }
+    }, [recentlyPlayed.length, page, itemsPerPage]);
 
     const handlePlay = (name, link, id, image, categoryId) => {
         dispatch(changeURL({ name, link, id, image, categoryId,currentPlayingPosition: "recentlyPlayed" }));
@@ -48,8 +63,9 @@ export default function RecentlyPlayed() {
                 </Box>
             )}
             {recentlyPlayed
-                .slice(0)
+                .slice()
                 .reverse()
+                .slice((page - 1) * itemsPerPage, page * itemsPerPage)
                 .map((item, key) => (
                     <Box
                         onClick={() => handlePlay(item.name, item.link, item.id, item.image, item.categoryId)}
@@ -66,6 +82,31 @@ export default function RecentlyPlayed() {
                         </Box>
                     </Box>
                 ))}
+                    {showPagination && (
+                        <Box my={2} display="flex" justifyContent="flex-end" alignItems="center">
+                            <IconButton
+                                size="small"
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                                aria-label="previous page"
+                            >
+                                <ArrowBackIosIcon fontSize="small" />
+                            </IconButton>
+
+                            <Box mx={1} fontSize="body2.fontSize">
+                                {page} / {noOfPages}
+                            </Box>
+
+                            <IconButton
+                                size="small"
+                                onClick={() => setPage((p) => Math.min(noOfPages, p + 1))}
+                                disabled={page >= noOfPages}
+                                aria-label="next page"
+                            >
+                                <ArrowForwardIosIcon fontSize="small" />
+                            </IconButton>
+                        </Box>
+                    )}
         </Paper>
     );
 }

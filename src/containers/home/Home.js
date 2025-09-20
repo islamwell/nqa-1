@@ -94,7 +94,7 @@ export default function Home() {
             
           </>
           <Grid item xs={12} md={8}>
-            <Box className={classes.title} mb={3} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
+            <Box className={classes.title} mb={3} fontSize="h4.fontSize" fontWeight="fontWeightBold">
               Recently Added
             </Box>
             {audioList.map((item, key) => {
@@ -120,7 +120,7 @@ export default function Home() {
 
             <RecentlyPlayed />
           <Grid item xs={12} md={12}>
-            <Box className={classes.title} mb={3} fontSize="h4.fontSize" fontWeight="fontWeightBold">
+            <Box className={classes.title} mb={3} mt={3} fontSize="h4.fontSize" fontWeight="fontWeightBold">
               Favorites
             </Box>
             <Favorite />

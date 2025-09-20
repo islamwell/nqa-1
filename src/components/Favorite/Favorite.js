@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 import "./Favorite.css";
 import { Box, IconButton } from "@material-ui/core";
 import Image from "../Image";
@@ -8,14 +8,14 @@ import { changeURL } from "../../store/slices/playerSlice";
 import { changeFav } from "../../store/slices/favoriteSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
-import Pagination from "@material-ui/lab/Pagination";
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 
 const useStyles = makeStyles((theme) => ({
   mainContainer: {
     borderRadius: 10,
-    maxHeight: 400,
-    overflowY: "scroll",
+    // maxHeight: 400,
 
     [theme.breakpoints.down("sm")]: {
       padding: theme.spacing(5),
@@ -80,14 +80,20 @@ function Favorite() {
     );
   };
 
-  const showPagination = favorite.length > 0;
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
   const [page, setPage] = useState(1);
-  const [noOfPages] = useState(Math.ceil(favorite.length / itemsPerPage));
+  const noOfPages = Math.max(1, Math.ceil(favorite.length / itemsPerPage));
+  const showPagination = noOfPages > 1;
 
-  const handleChange = (event, value) => {
-    setPage(value);
-  };
+  useEffect(() => {
+    const newNoOfPages = Math.max(1, Math.ceil(favorite.length / itemsPerPage));
+    if (page > newNoOfPages) {
+      setPage(newNoOfPages);
+    }
+    if (favorite.length > 0 && page < 1) {
+      setPage(1);
+    }
+  }, [favorite.length, page, itemsPerPage]);
 
   return (
     <div className="favorite-container">
@@ -97,8 +103,9 @@ function Favorite() {
         </Box>
       )}
       {favorite
-        .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+        .slice()
         .reverse()
+        .slice((page - 1) * itemsPerPage, page * itemsPerPage)
         .map((item, key) => (
           <Box
             className={item.link === "category-link" ? classes.itemContainerCategory :classes.itemContainer}
@@ -156,18 +163,28 @@ function Favorite() {
           </Box>
         ))}
       {showPagination && (
-        <Box py={2} display="flex" justifyContent="flex-end">
-          <Pagination
-            count={noOfPages}
-            page={page}
-            onChange={handleChange}
-            defaultPage={1}
-            color="primary"
-            showFirstButton
-            showLastButton
-            variant="outlined"
-            shape="rounded"
-          />
+        <Box my={2} display="flex" justifyContent="flex-end" alignItems="center">
+          <IconButton
+            size="small"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            aria-label="previous page"
+          >
+            <ArrowBackIosIcon fontSize="small" />
+          </IconButton>
+
+          <Box mx={1} fontSize="body2.fontSize">
+            {page} / {noOfPages}
+          </Box>
+
+          <IconButton
+            size="small"
+            onClick={() => setPage((p) => Math.min(noOfPages, p + 1))}
+            disabled={page >= noOfPages}
+            aria-label="next page"
+          >
+            <ArrowForwardIosIcon fontSize="small" />
+          </IconButton>
         </Box>
       )}
     </div>

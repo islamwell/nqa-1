@@ -248,6 +248,7 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                         {
                             (!display) &&
                             <>
+                                <div className="icon-group">
                                 {currentPlayingPosition !== "player" && (
                                     <IconButton
                                         disabled={downloadingIds.includes(id)}
@@ -298,6 +299,7 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                 >
                                     <ListIcon style={{ color: currentPlayingPosition === "player" ? "white" : "#777" }} />
                                 </IconButton>
+                                </div>
                             </>
                         }
                         {display && (

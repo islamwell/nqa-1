@@ -138,13 +138,15 @@ export default function Home() {
                             >
                                 {categoryDetails?.name}
                             </Box>
-                            <IconButton onClick={handleFavorite}  size="small">
-                            <FavoriteBorderIcon
-              style={
-                present ? { color: "rgb(240,100,100)" } : { color: "#777" }
-              }
-            />
-          </IconButton>
+                                                        <Box className="icon-group" ml={1}>
+                                                            <IconButton onClick={handleFavorite}  size="small">
+                                                                <FavoriteBorderIcon
+                                                                    style={
+                                                                        present ? { color: "rgb(240,100,100)" } : { color: "#777" }
+                                                                    }
+                                                                />
+                                                            </IconButton>
+                                                        </Box>
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={8}>
