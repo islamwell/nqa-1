@@ -220,7 +220,6 @@ const normalizeCategoryName = (categoryName) => {
 };
 
 export const getSubCategoryIds = (categoryId, subCategoryIds) => {
-    console.log(categoryId, subCategoryIds, 'categoryId, subCategoryIds');
     if (!Array.isArray(subCategoryIds)) {
         subCategoryIds = [];
     }

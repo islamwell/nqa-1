@@ -19,7 +19,6 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1,
         backgroundColor: "#f7f7f7",
         minHeight: `calc(100vh - 120px)`,
-        padding: theme.spacing(5, 0, 10, 0),
     },
 
     image: {
@@ -50,8 +49,13 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const normalizeCategoryName = (name) => {
-    return name?.replace(/-/g, ' ').replace('%26', '&').replace('%2B', '+');
+const normalizeSubCategoryName = (name) => {
+    if (name == null) return undefined;
+    try {
+        return decodeURIComponent(name).replace(/-/g, ' ');
+    } catch (e) {
+        return name.replace(/-/g, ' ');
+    }
 };
 
 export default function Home() {
@@ -61,10 +65,10 @@ export default function Home() {
     const [categoryDetails, setCategoryDetails] = useState(null);
     const categoryId = categoryDetails?.id;
 
-    const categoryName = normalizeCategoryName(decodeURIComponent(params.category));
-    const subCategoryOneName = normalizeCategoryName(params.subCategoryOne);
-    const subCategoryTwoName = normalizeCategoryName(params.subCategoryTwo);
-    const subCategoryThreeName = normalizeCategoryName(params.subCategoryThree);
+    const categoryName = params.category ? decodeURIComponent(params.category) : undefined;
+    const subCategoryOneName = normalizeSubCategoryName(params.subCategoryOne);
+    const subCategoryTwoName = normalizeSubCategoryName(params.subCategoryTwo);
+    const subCategoryThreeName = normalizeSubCategoryName(params.subCategoryThree);
 
     const { offlineMode } = useSelector((state) => state.download);
     const { playing } = useSelector((state) => state.player);
@@ -82,8 +86,12 @@ export default function Home() {
     };
 
     useEffect(() => {
-        const categoryDetails = getCategoryByNameAndSubCategoryNames(categoryName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
-        setCategoryDetails(categoryDetails);
+        let details = getCategoryByNameAndSubCategoryNames(categoryName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+        if (!details && typeof categoryName === 'string') {
+            const fallbackName = categoryName.replace(/-/g, ' ');
+            details = getCategoryByNameAndSubCategoryNames(fallbackName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+        }
+        setCategoryDetails(details);
     }, [categoryName, subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;

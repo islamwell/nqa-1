@@ -1,9 +1,17 @@
 import Cover from "../../assets/image.png";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Image({ src, ...rest }) {
     const [status, setStatus] = useState("loading");
+
+    useEffect(() => {
+        if (!src) {
+            setStatus("error");
+        } else {
+            setStatus("loading");
+        }
+    }, [src]);
 
     const onLoad = () => {
         setStatus("success");

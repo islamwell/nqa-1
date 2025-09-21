@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Grid, Paper, Breadcrumbs, Link, IconButton } from "@material-ui/core";
+import { Box, Grid, Paper, Breadcrumbs, Link } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { useDispatch, useSelector } from "react-redux";
-import { changeURL } from "../../store/slices/playerSlice";
 import Image from "../Image";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import categoryStructure from "../../data/category-strcture";
-import { useHistory } from "react-router-dom";
+import { slugifyLower } from "../../utils";
+import { useHistory, useLocation } from "react-router-dom";
 import { navigateToCategory } from "../../helpers/navigateToCategory";
-import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import Home from "@material-ui/icons/Home";
 import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
 
@@ -76,13 +75,6 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     borderRadius: 10,
 
-    // [theme.breakpoints.down("sm")]: {
-    //     display: "flex",
-    //     flexDirection: "row",
-    //     justifyContent: "left",
-    //     height: 100,
-    //     alignItems: "center",
-    // },
 },
 }));
 
@@ -96,21 +88,10 @@ export default function CategorySlider({ data, getMore }) {
   const [currSubCategory, setCurrSubCategory] = useState({});
   const [history, setHistory] = useState([{id: 0, name: "Home"}]);
   const browserHistory = useHistory();
+  const { pathname } = useLocation();
   const [isSubCatVisible, setIsSubCatVisible] = useState(true);
   const {subCatsVisible} = useSelector((state) => state.favorite);
 
-  const handlePlay = (item) => {
-    dispatch(
-      changeURL({
-        name: item.name,
-        link: item.link,
-        id: item.id,
-        image: item.image,
-        categoryId: item.categoryId || item.category_id,
-        currentPlayingPosition: "topChart",
-      })
-    );
-  };
 
   let settings = {
     dots: false,
@@ -151,59 +132,86 @@ export default function CategorySlider({ data, getMore }) {
   };
 
   useEffect(() => {
-    if(currCategory.subCategories){
+    if (currCategory && currCategory.subCategories) {
       setSubCategories(currCategory.subCategories);
-      if (history.indexOf(currCategory) === -1){
-        var hist = [{id: 0, name: "Home"}];
-        hist.push(currCategory);
-        setHistory(hist); 
-      }
-    } else{
+      setCurrSubCategory({});
+    } else {
       setSubCategories([]);
     }
   }, [currCategory])
 
-  var subCatOnClick = (item) => {
-    if(item == currSubCategory){
-      return
+  useEffect(() => {
+  const path = pathname || '';
+  if (!path.startsWith('/category/')) return;
+
+  const raw = path.replace('/category/', '');
+    if (!raw) return;
+
+    const segments = raw.split('/').filter(Boolean);
+
+
+    const matched = [];
+    let candidates = categoryStructure;
+
+    for (let seg of segments) {
+      if (!candidates || candidates.length === 0) break;
+      const segSlug = seg.toLowerCase();
+  let found = candidates.find((c) => slugifyLower(c.name) === segSlug);
+      if (!found) {
+        found = candidates.find((c) => String(c.id) === seg);
+      }
+      if (!found) break;
+      matched.push(found);
+      candidates = found.subCategories || [];
     }
-    if (history.indexOf(item) === -1){
-      var hist = history; 
-      hist.push(item);
+
+    if (matched.length > 0) {
+      const hist = [{ id: 0, name: 'Home' }, ...matched];
       setHistory(hist);
+      const last = matched[matched.length - 1];
+      setSubCategories(last.subCategories || []);
+      setCurrCategory(matched[0] || {});
+      if (matched.length > 1) setCurrSubCategory(matched[matched.length - 1] || {});
+      dispatch(
+        changeSubCatsVisible({
+          subCatsVisible: true,
+        })
+      );
     }
-    if(item.subCategories){
+  }, [pathname, dispatch]);
+
+  var subCatOnClick = (item) => {
+    if (item.id === currSubCategory.id) {
+      return;
+    }
+    setHistory((prev) => {
+      if (prev.find((h) => h.id === item.id)) return prev;
+      return [...prev, item];
+    });
+
+    if (item.subCategories) {
       setCurrSubCategory(item);
       setSubCategories(item.subCategories);
-      // if (history.indexOf(item) === -1){
-      //   var hist = history; 
-      //   hist.push(item);
-      //   setHistory(hist);
-      // }
-    } else{ 
-      //DO ROUTING
-      //setSubCategories([]);
+      navigateToCategory(item.id, browserHistory);
+    } else {
       setCurrSubCategory(item);
       handleSelectCategory(item);
     }
-    !isSubCatVisible && setIsSubCatVisible(true)
-  }
+    !isSubCatVisible && setIsSubCatVisible(true);
+  };
 
   var handleHistoryClick = (item) => {
-    if(item.id === 0){
-      setCurrCategory({})
-      setSubCategories([])
-      setCurrSubCategory({})
-      setHistory([history[0]])
+    if (item.id === 0) {
+      setCurrCategory({});
+      setSubCategories([]);
+      setCurrSubCategory({});
+      setHistory([{ id: 0, name: "Home" }]);
       browserHistory.push('/');
-    } else{
-      setHistory(history.slice(0,history.indexOf(item)+1))
-      if(item.subCategories){
-        setSubCategories(item.subCategories)
-      }
+    } else {
+      navigateToCategory(item.id, browserHistory);
     }
-    !isSubCatVisible && setIsSubCatVisible(true)
-  }
+    !isSubCatVisible && setIsSubCatVisible(true);
+  };
 
   const handleSelectCategory = ({ id }) => {
     setIsSubCatVisible(false);
@@ -214,7 +222,7 @@ export default function CategorySlider({ data, getMore }) {
 
   return (
     <div className={classes.root}>
-      <Box className={classes.title} mb={1} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
+      <Box className={classes.title} my={2} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
         Categories
       </Box>
       <div onClick={getMore} >
@@ -234,6 +242,7 @@ export default function CategorySlider({ data, getMore }) {
                       )
                       setCurrCategory(item)
                       !isSubCatVisible && setIsSubCatVisible(true)
+                      navigateToCategory(item.id, browserHistory);
                     }} 
                     src={item.image} className={classes.image}/>
                 </Box>
@@ -246,23 +255,26 @@ export default function CategorySlider({ data, getMore }) {
           </Slider>
           </div>
       {
-        subCategories.length > 0 && subCatsVisible?
+        (history.length > 1 || subCategories.length > 0) && subCatsVisible?
         <>
-        <Box className={classes.title} mb={3} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
+        <Box className={classes.title} my={3} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
             <Breadcrumbs >
               {
                 history.map((item, idx) => (
                   <span key={`history-${item.id}`}>
                     {/* {idx !== 0 ? ">" : ""} */}
                     
-                    <Link className = {classes.catLink} 
-                      onClick = {
-                        item.id !== currSubCategory.id ? 
-                        () => handleHistoryClick(item) :
-                        () => {}
+                    <Link
+                      className={classes.catLink}
+                      onClick={
+                        idx !== history.length - 1
+                          ? () => handleHistoryClick(item)
+                          : () => {}
                       }
-                      textOverflow="ellipsis" overflow="hidden">
-                      {idx === 0 ? <Home/> : item.name}
+                      textOverflow="ellipsis"
+                      overflow="hidden"
+                    >
+                      {idx === 0 ? <Home /> : item.name}
                     </Link>
 
                   </span>
@@ -273,7 +285,7 @@ export default function CategorySlider({ data, getMore }) {
         </Box>
         {
           isSubCatVisible &&
-      <div >
+      <Box mb={2}>
         {/* <Slider  */}
           <Grid container spacing={2}>
 
@@ -295,7 +307,7 @@ export default function CategorySlider({ data, getMore }) {
           </Grid>
           
           {/* </Slider> */}
-          </div>
+          </Box>
         }
         </> : <></>
       }
