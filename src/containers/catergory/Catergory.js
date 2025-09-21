@@ -52,9 +52,18 @@ const useStyles = makeStyles((theme) => ({
 const normalizeSubCategoryName = (name) => {
     if (name == null) return undefined;
     try {
-        return decodeURIComponent(name).replace(/-/g, ' ');
+        return decodeURIComponent(name)
+            .toString()
+            .normalize()
+            .replace(/\u00A0/g, ' ')
+            .replace(/[\s_-]+/g, ' ')
+            .trim();
     } catch (e) {
-        return name.replace(/-/g, ' ');
+        return name.toString()
+            .normalize()
+            .replace(/\u00A0/g, ' ')
+            .replace(/[\s_-]+/g, ' ')
+            .trim();
     }
 };
 

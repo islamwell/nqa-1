@@ -9,7 +9,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import React, { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
-import { getSubCategoryIds, getSubCategoryNamesByIds } from '../../db/services';
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 import SubMenu from "./SubMenu";
 import {changeSubCatsVisible} from "../../store/slices/favoriteSlice";
@@ -90,7 +89,7 @@ export default function Menu({ category }) {
         dispatch(
             changeSubCatsVisible(
                 {
-                    subCatsVisible: false
+                    subCatsVisible: true
                 }
             )
         )

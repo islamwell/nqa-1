@@ -140,7 +140,8 @@ const recursivSearchByName = (categories, searchText) => {
 };
 
 export const recursiveSearchByExactName = (categories, searchText) => {
-    let filtered = categories.filter(item => item.name.toLowerCase() === searchText.replace(/"/g, "").toLowerCase())
+    const normalizedTarget = normalizeCategoryName(searchText)?.toLowerCase();
+    let filtered = categories.filter(item => normalizeCategoryName(item.name)?.toLowerCase() === normalizedTarget)
 
     categories.forEach((category) => {
         if (category.subCategories) {
@@ -216,7 +217,13 @@ export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames) => 
 };
 
 const normalizeCategoryName = (categoryName) => {
-    return categoryName?.replace(/-/g, ' ');
+    if (categoryName == null) return categoryName;
+    return categoryName
+        .toString()
+        .normalize()
+        .replace(/\u00A0/g, ' ')
+        .replace(/[\s_-]+/g, ' ')
+        .trim();
 };
 
 export const getSubCategoryIds = (categoryId, subCategoryIds) => {
