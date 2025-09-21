@@ -53,6 +53,11 @@ export default function Menu({ category }) {
 
 
     const handleToggle = () => {
+        if (!category?.subCategories || category.subCategories.length === 0) {
+            handleSelectCategory(category);
+            return;
+        }
+
         setOpen((prevOpen) => !prevOpen);
     };
 
@@ -117,33 +122,35 @@ export default function Menu({ category }) {
                     {category.name}
                 </MenuItem>
 
-                <Popper
-                    placement="bottom-start"
-                    open={open}
-                    anchorEl={anchorRef.current}
-                    role={undefined}
-                    transition
-                    disablePortal
-                    style={{zIndex: 100}}
-                >
-                    {({ TransitionProps, placement }) => (
-                        <Grow
-                            {...TransitionProps}
-                            style={{
-                                transformOrigin: "top left",
-                            }}
-                            timeout={250}
-                        >
-                            <Paper style={{ marginTop: 0, marginBottom: 0 }}>
-                                <ClickAwayListener onClickAway={handleClose}>
-                                    <MenuList autoFocusItem={open} id="menu-list-grow" onKeyDown={handleListKeyDown}>
-                                        {rederCategories(category?.subCategories)}
-                                    </MenuList>
-                                </ClickAwayListener>
-                            </Paper>
-                        </Grow>
-                    )}
-                </Popper>
+                {category?.subCategories && category.subCategories.length > 0 && (
+                    <Popper
+                        placement="bottom-start"
+                        open={open}
+                        anchorEl={anchorRef.current}
+                        role={undefined}
+                        transition
+                        disablePortal
+                        style={{zIndex: 100}}
+                    >
+                        {({ TransitionProps, placement }) => (
+                            <Grow
+                                {...TransitionProps}
+                                style={{
+                                    transformOrigin: "top left",
+                                }}
+                                timeout={250}
+                            >
+                                <Paper style={{ marginTop: 0, marginBottom: 0 }}>
+                                    <ClickAwayListener onClickAway={handleClose}>
+                                        <MenuList autoFocusItem={open} id="menu-list-grow" onKeyDown={handleListKeyDown}>
+                                            {rederCategories(category?.subCategories)}
+                                        </MenuList>
+                                    </ClickAwayListener>
+                                </Paper>
+                            </Grow>
+                        )}
+                    </Popper>
+                )}
             </div>
         </div>
     );
