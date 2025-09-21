@@ -15,6 +15,7 @@ export const playerSlice = createSlice({
     name: "player",
     initialState: {
         open: false,
+        minimized: false,
         playing: false,
         link: "",
         id: -1,
@@ -28,16 +29,24 @@ export const playerSlice = createSlice({
     reducers: {
         play: (state) => {
             state.open = true;
+            state.minimized = false;
         },
 
         toggle: (state, action) => {
             state.playing = action.payload;
+        },
+        minimize: (state) => {
+            state.minimized = true;
+        },
+        maximize: (state) => {
+            state.minimized = false;
         },
         closePlayer: (state) => {
             state.open = false;
             state.link = null;
             state.id = -1;
             state.playing = false;
+            state.minimized = false;
         },
         updateCurrentAudioList: (state, action) => {
             state.currentAudioList = action.payload;
@@ -77,6 +86,7 @@ export const playerSlice = createSlice({
             state.id = action.payload.id;
             state.categoryId = action.payload.categoryId;
             state.open = true;
+            state.minimized = false;
             state.currentPlayingPosition = action.payload.currentPlayingPosition;
 
             if (state.recentlyPlayed.find((item) => item.id === action.payload.id)) return;
@@ -111,6 +121,6 @@ export const playerSlice = createSlice({
     
 });
 
-export const { play, toggle, closePlayer, changeURL,updateCurrentAudioList, playNextOrPrevious } = playerSlice.actions;
+export const { play, toggle, closePlayer, changeURL, updateCurrentAudioList, playNextOrPrevious, minimize, maximize } = playerSlice.actions;
 
 export default playerSlice.reducer;

@@ -6,9 +6,14 @@ import { useTheme } from "@material-ui/core/styles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import AudioPlayer, { RHAP_UI } from "react-h5-audio-player";
 import { useDispatch, useSelector } from "react-redux";
-import { IconButton } from "@material-ui/core";
+import { IconButton, Typography } from "@material-ui/core";
 import CloseIcon from "@material-ui/icons/Close";
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import PauseIcon from '@material-ui/icons/Pause';
 import { closePlayer, playNextOrPrevious, toggle } from "../../store/slices/playerSlice";
+import { minimize, maximize } from "../../store/slices/playerSlice";
 import "react-h5-audio-player/lib/styles.css";
 import "./player.css";
 import { useHistory } from "react-router-dom";
@@ -81,6 +86,14 @@ const useStyles = makeStyles((theme) => ({
             fontSize: 14,
         },
     },
+    controlButton: {
+        padding: 4,
+        '& svg': {
+            fontSize: 18,
+        },
+        minWidth: 32,
+        height: 32,
+    },
 }));
 
 export default function Player() {
@@ -88,7 +101,7 @@ export default function Player() {
 
     const classes = useStyles();
 
-    const { link, name, id, categoryId, currentAudioList, open } = useSelector((state) => state.player);
+    const { link, name, id, categoryId, currentAudioList, open, minimized, playing } = useSelector((state) => state.player);
     const dispatch = useDispatch();
     const theme = useTheme();
     const history = useHistory();
@@ -115,6 +128,22 @@ export default function Player() {
         dispatch(toggle(status));
     };
 
+    const handleMaximize = () => {
+        dispatch(maximize());
+    };
+
+    const handleTogglePlayPause = () => {
+        const audio = document.getElementsByTagName('audio')[0];
+        if (!audio) return;
+        if (audio.paused) {
+            audio.play();
+            dispatch(toggle(true));
+        } else {
+            audio.pause();
+            dispatch(toggle(false));
+        }
+    };
+
     const categoryName = useMemo(() => offlineAPI.getCategoryById(categoryId)?.name, [categoryId]);
 
     // add listner to detect the end of the audio
@@ -131,10 +160,42 @@ export default function Player() {
     const matches = useMediaQuery('(max-width:768px)');
     const sm = useMediaQuery('(max-width:362px)');
 
-    if (open) {
-        return (
-            <Box className={classes.root} display="flex" zIndex={2} style={sm ? { height: '160px' } : matches ? { height: '145px' } : {}}>
-                <Box className={classes.playerContainer}>
+    if (!open) return null;
+
+    return (
+        <Box
+            className={classes.root}
+            display="flex"
+            alignItems={minimized ? 'center' : 'stretch'}
+            zIndex={2}
+            style={
+                minimized
+                    ? { height: '56px' }
+                    : (sm ? { height: '160px' } : matches ? { height: '145px' } : {})
+            }
+        >
+            <Box className={classes.playerContainer} width="100%" display="flex" flexDirection="column" justifyContent={minimized ? 'center' : 'flex-start'}>
+                {minimized ? (
+                    <Box display="flex" alignItems="center" justifyContent="space-between" width="100%" px={1} py={0.5} style={{ height: '100%' }}>
+                        <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                            <IconButton size="small" className={classes.controlButton} onClick={handleTogglePlayPause}>
+                                {playing ? <PauseIcon style={{ color: 'white' }} /> : <PlayArrowIcon style={{ color: 'white' }} />}
+                            </IconButton>
+                            <Box onClick={onCategoryClick} style={{ cursor: 'pointer' }}>
+                                <Typography className={classes.title} noWrap>{name}</Typography>
+                            </Box>
+                        </Box>
+
+                        <Box display="flex" alignItems="center" style={{ height: '100%', gap: 2 }} mr={2}>
+                                <IconButton size="small" className={classes.controlButton} onClick={handleMaximize}>
+                                    <ExpandLessIcon style={{ color: 'white' }} />
+                                </IconButton>
+                                <IconButton size="small" className={classes.controlButton} onClick={handleCloseButton}>
+                                    <CloseIcon style={{ color: 'white' }} />
+                                </IconButton>
+                        </Box>
+                    </Box>
+                ) : (
                     <Box display="flex" justifyContent="space-between" alignItems="center" px={1}>
                         <Box display="flex" justifyContent="center" alignItems="center">
                             {categoryName && (
@@ -163,41 +224,48 @@ export default function Player() {
                             </Box>
                         </Box>
 
-                        <Box display="flex" alignItems="flex-start">
-                            <IconButton size="small" onClick={handleCloseButton}>
-                                <CloseIcon style={{ color: "white" }} />
-                            </IconButton>
+                        <Box position="relative" style={{ height: '100%' }}>
+                            <Box position="absolute" top={8} right={0} display="flex" alignItems="center" style={{ height: '100%', gap: 2 }}>
+                                <IconButton size="small" className={classes.controlButton} onClick={() => dispatch(minimize())}>
+                                    <ExpandMoreIcon style={{ color: 'white' }} />
+                                </IconButton>
+                                <IconButton size="small" className={classes.controlButton} onClick={handleCloseButton}>
+                                    <CloseIcon style={{ color: 'white' }} />
+                                </IconButton>
+                            </Box>
                         </Box>
                     </Box>
-                    <AudioPlayer
-                        id="audio-player"
-                        ref={playerRef}
-                        showJumpControls={false}
-                        showSkipControls
-                        layout={isMobile ? "stacked" : "horizontal-reverse"}
-                        customAdditionalControls={[
-                            RHAP_UI.LOOP,
-                            matches ? null :
+                )}
+
+                <AudioPlayer
+                    id="audio-player"
+                    ref={playerRef}
+                    style={minimized ? { position: 'absolute', left: '-9999px', visibility: 'hidden' } : undefined}
+                    showJumpControls={false}
+                    showSkipControls
+                    layout={isMobile ? "stacked" : "horizontal-reverse"}
+                    customAdditionalControls={[
+                        RHAP_UI.LOOP,
+                        matches ? null :
+                            <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentAudioList.filter(audio => audio.id === id)[0]?.image }} currentPlayingPosition="player" />
+                    ]}
+                    className={classes.player}
+                    autoPlay
+                    src={link}
+                    onClickNext={handleNext}
+                    onClickPrevious={handlePrevious}
+                    onPlay={() => togglePlayer(true)}
+                    onPause={() => togglePlayer(false)}
+                    footer={!matches ? null :
+                        (
+                            <Box display="flex" justifyContent="center" alignItems="center">
                                 <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentAudioList.filter(audio => audio.id === id)[0]?.image }} currentPlayingPosition="player" />
-                        ]}
-                        className={classes.player}
-                        autoPlay
-                        src={link}
-                        onClickNext={handleNext}
-                        onClickPrevious={handlePrevious}
-                        onPlay={() => togglePlayer(true)}
-                        onPause={() => togglePlayer(false)}
-                        footer={!matches ? null :
-                            (
-                                <Box display="flex" justifyContent="center" alignItems="center">
-                                    <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentAudioList.filter(audio => audio.id === id)[0]?.image }} currentPlayingPosition="player" />
-                                </Box>
-                            )
-                        }
-                    //crossOrigin="anonymous"
-                    />
-                </Box>
+                            </Box>
+                        )
+                    }
+                //crossOrigin="anonymous"
+                />
             </Box>
-        );
-    } else return null;
+        </Box>
+    );
 }
