@@ -179,9 +179,7 @@ export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames) => 
         return category;
     }
 
-    const subCategoryOne = category?.subCategories.find((item) => {
-        return normalizeCategoryName(item.name?.toLowerCase()) === normalizeCategoryName(subCategoryOneName?.toLowerCase());
-    });
+    const subCategoryOne = findSubCategoryByName(category?.subCategories, subCategoryOneName);
 
     if (!subCategoryOne?.subCategories?.length) {
         if (subCategoryOne) {
@@ -191,9 +189,7 @@ export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames) => 
         return category;
     }
 
-    const subCategoryTwo = subCategoryOne?.subCategories.find((item) => {
-        return normalizeCategoryName(item.name?.toLowerCase()) === normalizeCategoryName(subCategoryTwoName?.toLowerCase());
-    });
+    const subCategoryTwo = findSubCategoryByName(subCategoryOne?.subCategories, subCategoryTwoName);
 
     if (!subCategoryTwo?.subCategories?.length) {
         if (subCategoryTwo) {
@@ -203,9 +199,7 @@ export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames) => 
         return subCategoryOne;
     }
 
-    const subCategoryThree = subCategoryTwo?.subCategories.find((item) => {
-        return normalizeCategoryName(item.name?.toLowerCase()) === normalizeCategoryName(subCategoryThreeName?.toLowerCase());
-    });
+    const subCategoryThree = findSubCategoryByName(subCategoryTwo?.subCategories, subCategoryThreeName);
 
     if (!subCategoryThree?.subCategories?.length) {
         if (subCategoryThree) {
@@ -216,6 +210,24 @@ export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames) => 
     }
 };
 
+const findSubCategoryByName = (siblings, targetName) => {
+    if (!siblings || !siblings.length || !targetName) return undefined;
+    const normTarget = normalizeCategoryName(targetName)?.toLowerCase();
+
+    const exact = siblings.find((item) => normalizeCategoryName(item?.name)?.toLowerCase() === normTarget);
+    if (exact) return exact;
+
+    try {
+        const results = fuzzysort.go(normTarget, siblings, { key: 'name', allowTypo: true });
+        if (results && results.length > 0) {
+            return results[0].obj;
+        }
+    } catch (_) {
+    }
+    
+    return undefined;
+};
+
 const normalizeCategoryName = (categoryName) => {
     if (categoryName == null) return categoryName;
     return categoryName
@@ -223,6 +235,7 @@ const normalizeCategoryName = (categoryName) => {
         .normalize()
         .replace(/\u00A0/g, ' ')
         .replace(/[\s_-]+/g, ' ')
+        .replace(/\b0+(\d+)\b/g, '$1')
         .trim();
 };
 

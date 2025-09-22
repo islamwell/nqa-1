@@ -37,10 +37,26 @@ export const useData = (props = {}) => {
 
         axios
             .get(link)
-            .then((res) => {
-                setAudioList(res.data.data);
-                setTotalPages(res.data.allpage);
-                setLoading(false);
+            .then(async (res) => {
+                const list = res?.data?.data || [];
+                const pages = res?.data?.allpage || 1;
+
+                if (Array.isArray(list) && list.length === 0 && categoryId) {
+                    try {
+                        const offline = await offlineAPI.getAudioByCategory(categoryId, currentPage);
+                        setAudioList(offline.data);
+                        setTotalPages(offline.allpage || 1);
+                    } catch (_) {
+                        setAudioList(list);
+                        setTotalPages(pages);
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    setAudioList(list);
+                    setTotalPages(pages);
+                    setLoading(false);
+                }
             })
             .catch((e) => {
                 setLoading(false);
