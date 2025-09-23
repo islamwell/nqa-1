@@ -40,7 +40,7 @@ export const getAudioByName = async (searchText, page) => {
         const start = (page - 1) * pageSize;
         const end = start + pageSize;
         const data = filtered.slice(start, end);
-        const allpage = Math.round(filtered.length / pageSize);
+        const allpage = Math.ceil(filtered.length / pageSize);
 
         return { data, allpage };
     } catch (error) {
@@ -71,10 +71,10 @@ export const getAudioByCategory = async (categoryId, page) => {
             filtered = filtered.concat(rest);
         }
 
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const data = filtered.slice(start, end);
-        const allpage = Math.round(filtered.length / pageSize);
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const data = filtered.slice(start, end);
+    const allpage = Math.ceil(filtered.length / pageSize);
 
         return { data, allpage };
     } catch (error) {
@@ -85,10 +85,11 @@ export const getAudioByCategory = async (categoryId, page) => {
 export const getAudio = async (page) => {
     try {
         const count = await db.table("audioList").count();
-        const allpage = Math.round(count / pageSize);
+        const allpage = Math.ceil(count / pageSize);
         const data = await db
             .table("audioList")
-            .orderBy("name")
+            .orderBy("id")
+            .reverse()
             .offset((page - 1) * pageSize)
             .limit(pageSize)
             .toArray();
@@ -162,7 +163,7 @@ export const getCategoryByName = (searchText, page) => {
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     const data = filtered.slice(start, end);
-    const allpage = Math.round(filtered.length / pageSize);
+    const allpage = Math.ceil(filtered.length / pageSize);
 
     return { data, allpage };
 };

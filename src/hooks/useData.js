@@ -58,7 +58,22 @@ export const useData = (props = {}) => {
                     setLoading(false);
                 }
             })
-            .catch((e) => {
+            .catch(async (e) => {
+                try {
+                    if (searchText) {
+                        const res = await offlineAPI.getAudioByName(searchText, currentPage);
+                        setAudioList(res.data);
+                        setTotalPages(res.allpage || 1);
+                    } else if (categoryId) {
+                        const res = await offlineAPI.getAudioByCategory(categoryId, currentPage);
+                        setAudioList(res.data);
+                        setTotalPages(res.allpage || 1);
+                    } else {
+                        const res = await offlineAPI.getAudio(currentPage);
+                        setAudioList(res.data);
+                        setTotalPages(res.allpage || 1);
+                    }
+                } catch (_) {}
                 setLoading(false);
             });
     };
@@ -105,7 +120,7 @@ export const useData = (props = {}) => {
         } else {
             getAudioListOffline();
         }
-    }, [currentPage, searchText, categoryId]);
+    }, [currentPage, searchText, categoryId, offlineMode]);
 
     useEffect(() => {
         const getCategoryList = async () => {
