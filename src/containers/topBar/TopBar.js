@@ -11,7 +11,7 @@ import { useHistory } from "react-router-dom";
 import { DownalodNotification, Backdrop, DesktopDropdownMenu, MobileDropdownMenu } from "../../components";
 import { Button, Menu, MenuItem } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
-import { downloadAudioList } from "../../store/slices/downloadSlice";
+import { downloadAudioList, updateOfflineStatus } from "../../store/slices/downloadSlice";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import { version } from "../../data/config";
 import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
@@ -161,7 +161,10 @@ export default function PrimarySearchAppBar() {
   };
 
   const handleOffline = async () => {
-    if (localStorage.getItem("offline_mode") && localStorage.getItem("offline_mode") === 'true') return;
+    if (localStorage.getItem("offline_mode") === 'true') {
+      dispatch(updateOfflineStatus(true));
+      return;
+    }
     dispatch(downloadAudioList());
   };
 

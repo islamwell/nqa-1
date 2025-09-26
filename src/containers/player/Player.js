@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
         },
 
         [theme.breakpoints.up("xs")]: {
-            height: 120, // 145
+            height: "auto",
         },
     },
 
@@ -93,6 +93,14 @@ const useStyles = makeStyles((theme) => ({
         },
         minWidth: 32,
         height: 32,
+    },
+    controlButtonLarge: {
+        padding: 6,
+        '& svg': {
+            fontSize: 22,
+        },
+        minWidth: 40,
+        height: 40,
     },
 }));
 
@@ -187,10 +195,10 @@ export default function Player() {
                         </Box>
 
                         <Box display="flex" alignItems="center" style={{ height: '100%', gap: 2 }} mr={2}>
-                                <IconButton size="small" className={classes.controlButton} onClick={handleMaximize}>
+                                <IconButton className={classes.controlButtonLarge} onClick={handleMaximize}>
                                     <ExpandLessIcon style={{ color: 'white' }} />
                                 </IconButton>
-                                <IconButton size="small" className={classes.controlButton} onClick={handleCloseButton}>
+                                <IconButton className={classes.controlButtonLarge} onClick={handleCloseButton}>
                                     <CloseIcon style={{ color: 'white' }} />
                                 </IconButton>
                         </Box>
@@ -226,10 +234,10 @@ export default function Player() {
 
                         <Box position="relative" style={{ height: '100%' }}>
                             <Box position="absolute" top={8} right={0} display="flex" alignItems="center" style={{ height: '100%', gap: 2 }}>
-                                <IconButton size="small" className={classes.controlButton} onClick={() => dispatch(minimize())}>
+                                <IconButton className={classes.controlButtonLarge} onClick={() => dispatch(minimize())}>
                                     <ExpandMoreIcon style={{ color: 'white' }} />
                                 </IconButton>
-                                <IconButton size="small" className={classes.controlButton} onClick={handleCloseButton}>
+                                <IconButton className={classes.controlButtonLarge} onClick={handleCloseButton}>
                                     <CloseIcon style={{ color: 'white' }} />
                                 </IconButton>
                             </Box>

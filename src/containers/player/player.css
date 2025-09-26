@@ -32,3 +32,15 @@
 .rhap_repeat-button {
     color: white;
 }
+
+@media (min-width: 769px) {
+    .rhap_container {
+        padding-top: 8px;
+        padding-bottom: 16px;
+    }
+
+    .rhap_progress-section {
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+}

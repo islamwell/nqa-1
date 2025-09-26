@@ -1,28 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Box, Button, IconButton, Paper } from "@material-ui/core";
+import { Box, IconButton, Paper } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
-import { addToDowanloadingQueue } from "../../store/slices/downloadSlice";
 import { changeURL } from "../../store/slices/playerSlice";
-import { changeFav } from "../../store/slices/favoriteSlice";
-
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-
-import Facebook from "@material-ui/icons/Facebook";
-import Twitter from "@material-ui/icons/Twitter";
-import Email from "@material-ui/icons/Mail";
-import Whatsapp from "@material-ui/icons/WhatsApp";
-import DownloadIcon from "@material-ui/icons/GetApp";
-import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
-import ShareIcon from "@material-ui/icons/ShareOutlined";
 import PauseCircleOutlineRoundedIcon from "@material-ui/icons/PauseCircleOutlineRounded";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
-import LinkIcon from "@material-ui/icons/Link";
 import parse from "html-react-parser";
-import ReactTooltip from "react-tooltip";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import CloseIcon from "@material-ui/icons/Close";
 
 import { ActionList, Image } from "../../components";
 const useStyles = makeStyles((theme) => ({
@@ -82,12 +67,17 @@ const useStyles = makeStyles((theme) => ({
     width: 12,
     color: "green",
   },
+
+  iconButton: {
+    padding: 0,
+    margin: 0,
+  },
 }));
 
 export default function ListItem({ data, currentPlayingPosition, children }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [isDownloaded, setIsDownloaded] = useState(false);
+  const [, setIsDownloaded] = useState(false);
   const { downloadingIds } = useSelector((state) => state.download);
   const { id: currentPlayingId, playing } = useSelector(
     (state) => state.player
@@ -138,24 +128,24 @@ export default function ListItem({ data, currentPlayingPosition, children }) {
   // }, []);
 
   // download notification toast  ##########################
-  let toastId = React.useRef(id);
-
-  const dismiss = () => toast.dismiss(toastId.current);
+  // let toastId = React.useRef(id);
+  // const dismiss = () => toast.dismiss(toastId.current);
 
   return (
-    <Paper variant="outlined" className={classes.mainContainer} style={{ backgruondColor: 'red' }}>
+  <Paper variant="outlined" className={classes.mainContainer}>
       <Image src={image} className={classes.image} />
       <Box
         px={1}
         py={1}
         display="flex"
         flexDirection="column"
-        justifyContent="space-between"
+        justifyContent="center"
         width={'100%'}
+        style={{gap: 2}}
       >
-          <Box display="flex" justifyContent="center" alignItems="center">
+          <Box display="flex" justifyContent="flex-start" alignItems="center">
             {/* {id === currentPlayingId && ( */}
-            <IconButton onClick={id === currentPlayingId ? togglePlay : handlePlay} size="small">
+            <IconButton className={classes.iconButton} onClick={id === currentPlayingId ? togglePlay : handlePlay} size="small">
               {(playing && id === currentPlayingId) ? (
                 <PauseCircleOutlineRoundedIcon
                   fontSize="large"

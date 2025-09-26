@@ -42,8 +42,13 @@ export const downloadAudioList = createAsyncThunk("downalod/audioList", async (_
     };
 
     try {
+        dispatch(downalodSlice.actions.updateOfflineStatus(false));
+
+        await offlineAPI.deleteAudio();
         const res = await getAudioListFromAllPages();
         await offlineAPI.addAudio(res);
+
+        dispatch(downalodSlice.actions.updateOfflineStatus(true));
     } catch (error) { }
 });
 
