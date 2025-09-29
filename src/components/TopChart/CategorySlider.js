@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Grid, Paper, Breadcrumbs, Link } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +11,8 @@ import { slugifyLower } from "../../utils";
 import { useHistory, useLocation } from "react-router-dom";
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 import Home from "@material-ui/icons/Home";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
 
 
@@ -52,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: theme.typography.fontSize,
     padding: theme.spacing(0),
     [theme.breakpoints.down("xs")]: {
-      width: 10,
+      width: 120,
     },
   },
 
@@ -64,7 +66,7 @@ const useStyles = makeStyles((theme) => ({
     textOverflow: "ellipses",
     fontWeight: "bold",
     [theme.breakpoints.down("xs")]: {
-      width: 10,
+      width: "auto",
     },
   },
   categoryContainer: {
@@ -76,9 +78,99 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: 10,
 
 },
+  sliderWrapper: {
+    position: "relative",
+    '& .slick-prev, & .slick-next': {
+      zIndex: 5,
+      width: 36,
+      height: 36,
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(16, 107, 102, 0.75) !important',
+    },
+    '& .slick-prev:before, & .slick-next:before': {
+      display: 'none',
+    },
+    '& .slick-prev': { left: 8 },
+    '& .slick-next': { right: 8 },
+  },
+  navZone: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: "52px",
+    zIndex: 3,
+    cursor: "pointer",
+    backgroundColor: "transparent",
+    "&:hover": {
+      backgroundColor: "rgba(76, 175, 80, 0.08)",
+    },
+  },
+  navZoneHover: {
+    backgroundColor: "rgba(76, 175, 80, 0.12)",
+  },
+  navLeft: {
+    left: 0,
+  },
+  navRight: {
+    right: 0,
+  },
+  arrowRoot: {
+    zIndex: 6,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.85)',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+    transition: 'background 120ms ease, transform 120ms ease',
+    '&:hover': {
+      background: 'rgba(255,255,255,1)',
+    },
+    '&$arrowHover': {
+      background: 'rgba(255,255,255,1)'
+    },
+    '&$arrowHover $arrowIcon': {
+      color: '#f7f7f7'
+    }
+  },
+  arrowHover: {},
+  arrowIcon: {
+    color: "#dddddddd",
+    fontSize: 28,
+    transition: 'color 120ms ease',
+    '$arrowRoot:hover &': {
+      color: "#f7f7f7",
+    }
+  }
 }));
 
 
+
+const CustomArrow = ({ className, onClick, direction, onHover, isHovered }) => {
+  const classes = useStyles();
+  return (
+    <div
+      className={`${className} ${classes.arrowRoot} ${isHovered ? classes.arrowHover : ''}`}
+      onClick={onClick}
+      role="button"
+      aria-label={direction === 'left' ? 'Previous' : 'Next'}
+      onMouseEnter={() => onHover && onHover(true)}
+      onMouseLeave={() => onHover && onHover(false)}
+    >
+      {direction === 'left' ? (
+        <ChevronLeftIcon className={classes.arrowIcon} />
+      ) : (
+        <ChevronRightIcon className={classes.arrowIcon} />
+      )}
+    </div>
+  );
+};
 
 export default function CategorySlider({ data, getMore }) {
   const classes = useStyles();
@@ -91,6 +183,9 @@ export default function CategorySlider({ data, getMore }) {
   const { pathname } = useLocation();
   const [isSubCatVisible, setIsSubCatVisible] = useState(true);
   const {subCatsVisible} = useSelector((state) => state.favorite);
+  const sliderRef = useRef(null);
+  const draggingRef = useRef(false);
+  const [hoveredArrow, setHoveredArrow] = useState(null);
 
 
   let settings = {
@@ -98,8 +193,17 @@ export default function CategorySlider({ data, getMore }) {
     infinite: true,
     slidesToShow: 5,
     slidesToScroll: 1,
+    arrows: true,
+    prevArrow: <CustomArrow direction="left" onHover={(isHover) => setHoveredArrow(isHover ? 'left' : null)} isHovered={hoveredArrow === 'left'} />,
+    nextArrow: <CustomArrow direction="right" onHover={(isHover) => setHoveredArrow(isHover ? 'right' : null)} isHovered={hoveredArrow === 'right'} />,
     autoplay: true,
-    speed: 2500,
+    speed: 2000,
+    swipe: true,
+    swipeToSlide: true,
+    draggable: true,
+    touchMove: true,
+    touchThreshold: 15,
+    edgeFriction: 0.05,
     responsive: [
       {
         breakpoint: 1024,
@@ -107,7 +211,8 @@ export default function CategorySlider({ data, getMore }) {
           slidesToShow: 3,
           slidesToScroll: 3,
           infinite: true,
-          dots: false
+          dots: false,
+          touchThreshold: 15,
         }
       },
       {
@@ -115,19 +220,32 @@ export default function CategorySlider({ data, getMore }) {
         settings: {
           slidesToShow: 3,
           slidesToScroll: 2,
-          initialSlide: 2
+          initialSlide: 2,
+          touchThreshold: 15,
         }
       },
       {
         breakpoint: 480,
         settings: {
           slidesToShow: 3,
-          slidesToScroll: 1
+          slidesToScroll: 1,
+          touchThreshold: 15,
         }
       }
     ],
     autoplaySpeed: 2000,
     cssEase: "linear",
+    beforeChange: () => {
+      draggingRef.current = true;
+    },
+    afterChange: () => {
+      setTimeout(() => {
+        draggingRef.current = false;
+      }, 80);
+    },
+    onSwipe: () => {
+      draggingRef.current = true;
+    },
     
   };
 
@@ -226,15 +344,40 @@ export default function CategorySlider({ data, getMore }) {
         Categories
       </Box>
       <div onClick={getMore} >
-        <Slider 
-          
-        {...settings}>
+        <div className={classes.sliderWrapper}>
+          {/* Wide, full-height click zones for easy navigation */}
+          <div
+            className={`${classes.navZone} ${classes.navLeft} ${hoveredArrow === 'left' ? classes.navZoneHover : ''}`}
+            onMouseEnter={() => setHoveredArrow('left')}
+            onMouseLeave={() => setHoveredArrow(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (sliderRef.current) {
+                sliderRef.current.slickPrev();
+              }
+            }}
+          />
+          <div
+            className={`${classes.navZone} ${classes.navRight} ${hoveredArrow === 'right' ? classes.navZoneHover : ''}`}
+            onMouseEnter={() => setHoveredArrow('right')}
+            onMouseLeave={() => setHoveredArrow(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (sliderRef.current) {
+                sliderRef.current.slickNext();
+              }
+            }}
+          />
+
+          <Slider ref={sliderRef} {...settings}>
           {
             categoryStructure.map((item) => (
               <div className={classes.item} key={item.id}>
                 <Box>
                   <Image 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (draggingRef.current) return;
                       dispatch(
                         changeSubCatsVisible({
                           subCatsVisible: true
@@ -253,6 +396,7 @@ export default function CategorySlider({ data, getMore }) {
             ))
           }
           </Slider>
+        </div>
           </div>
       {
         (history.length > 1 || subCategories.length > 0) && subCatsVisible?
