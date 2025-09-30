@@ -152,7 +152,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-const CustomArrow = ({ className, onClick, direction, onHover, isHovered }) => {
+const CustomArrow = ({ className, onClick, direction, onHover, isHovered, onManualInteraction }) => {
   const classes = useStyles();
   return (
     <div
@@ -162,6 +162,7 @@ const CustomArrow = ({ className, onClick, direction, onHover, isHovered }) => {
       aria-label={direction === 'left' ? 'Previous' : 'Next'}
       onMouseEnter={() => onHover && onHover(true)}
       onMouseLeave={() => onHover && onHover(false)}
+      onMouseDown={() => onManualInteraction && onManualInteraction()}
     >
       {direction === 'left' ? (
         <ChevronLeftIcon className={classes.arrowIcon} />
@@ -186,7 +187,15 @@ export default function CategorySlider({ data, getMore }) {
   const sliderRef = useRef(null);
   const draggingRef = useRef(false);
   const [hoveredArrow, setHoveredArrow] = useState(null);
+  const [currentSpeed, setCurrentSpeed] = useState(2000);
 
+
+  const handleManualInteraction = () => {
+    if (sliderRef && sliderRef.current && sliderRef.current.slickPause) {
+      sliderRef.current.slickPause();
+    }
+    setCurrentSpeed(500);
+  };
 
   let settings = {
     dots: false,
@@ -194,10 +203,10 @@ export default function CategorySlider({ data, getMore }) {
     slidesToShow: 5,
     slidesToScroll: 1,
     arrows: true,
-    prevArrow: <CustomArrow direction="left" onHover={(isHover) => setHoveredArrow(isHover ? 'left' : null)} isHovered={hoveredArrow === 'left'} />,
-    nextArrow: <CustomArrow direction="right" onHover={(isHover) => setHoveredArrow(isHover ? 'right' : null)} isHovered={hoveredArrow === 'right'} />,
+    prevArrow: <CustomArrow direction="left" onHover={(isHover) => setHoveredArrow(isHover ? 'left' : null)} isHovered={hoveredArrow === 'left'} onManualInteraction={handleManualInteraction} />,
+    nextArrow: <CustomArrow direction="right" onHover={(isHover) => setHoveredArrow(isHover ? 'right' : null)} isHovered={hoveredArrow === 'right'} onManualInteraction={handleManualInteraction} />,
     autoplay: true,
-    speed: 2000,
+    speed: currentSpeed,
     swipe: true,
     swipeToSlide: true,
     draggable: true,
@@ -242,6 +251,7 @@ export default function CategorySlider({ data, getMore }) {
       setTimeout(() => {
         draggingRef.current = false;
       }, 80);
+      setCurrentSpeed(2000);
     },
     onSwipe: () => {
       draggingRef.current = true;
@@ -336,8 +346,6 @@ export default function CategorySlider({ data, getMore }) {
     navigateToCategory(id, browserHistory);
   };
 
-  
-
   return (
     <div className={classes.root}>
       <Box className={classes.title} my={2} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
@@ -352,6 +360,7 @@ export default function CategorySlider({ data, getMore }) {
             onMouseLeave={() => setHoveredArrow(null)}
             onClick={(e) => {
               e.stopPropagation();
+              handleManualInteraction();
               if (sliderRef.current) {
                 sliderRef.current.slickPrev();
               }
@@ -363,6 +372,7 @@ export default function CategorySlider({ data, getMore }) {
             onMouseLeave={() => setHoveredArrow(null)}
             onClick={(e) => {
               e.stopPropagation();
+              handleManualInteraction();
               if (sliderRef.current) {
                 sliderRef.current.slickNext();
               }
