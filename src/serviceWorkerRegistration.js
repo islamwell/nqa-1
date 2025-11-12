@@ -33,7 +33,7 @@ export function register(config) {
         window.addEventListener("load", () => {
             const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
 
-            if (!isLocalhost) {
+            if (isLocalhost) {
                 // This is running on localhost. Let's check if a service worker still exists or not.
                 checkValidServiceWorker(swUrl, config);
 
@@ -91,6 +91,11 @@ function registerValidSW(swUrl, config) {
                     }
                 };
             };
+
+            // Check for updates periodically (every hour)
+            setInterval(() => {
+                registration.update();
+            }, 60 * 60 * 1000); // 1 hour
         })
         .catch((error) => {
             console.error("Error during service worker registration:", error);

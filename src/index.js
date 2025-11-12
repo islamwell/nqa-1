@@ -17,4 +17,23 @@ ReactDOM.render(
     </React.StrictMode>,
     document.getElementById("root")
 );
-serviceWorkerRegistration.register();
+
+// Auto-update configuration for PWA
+serviceWorkerRegistration.register({
+    onUpdate: (registration) => {
+        // When a new service worker is waiting, automatically activate it
+        if (registration && registration.waiting) {
+            // Send SKIP_WAITING message to the waiting service worker
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+            // Listen for when the new service worker takes control
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                // Reload the page to get the latest content
+                window.location.reload();
+            });
+        }
+    },
+    onSuccess: (registration) => {
+        console.log('Service worker registered successfully');
+    }
+});
