@@ -19,23 +19,18 @@ ReactDOM.render(
 );
 
 // Auto-update configuration for PWA
-// Set up controller change listener ONCE to handle automatic reloads
-let refreshing = false;
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-        }
-    });
-}
-
 serviceWorkerRegistration.register({
     onUpdate: (registration) => {
         // When a new service worker is waiting, automatically activate it
         if (registration && registration.waiting) {
             // Send SKIP_WAITING message to the waiting service worker
             registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+            // Listen for when the new service worker takes control
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                // Reload the page to get the latest content
+                window.location.reload();
+            });
         }
     },
     onSuccess: (registration) => {
