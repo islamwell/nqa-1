@@ -7,6 +7,10 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
 
+const dispatchLifecycleEvent = (name, detail = {}) => {
+    window.dispatchEvent(new CustomEvent(name, { detail }));
+};
+
 ReactDOM.render(
     <React.StrictMode>
         <Provider store={store}>
@@ -18,22 +22,25 @@ ReactDOM.render(
     document.getElementById("root")
 );
 
+let refreshing = false;
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+    });
+}
+
 // Auto-update configuration for PWA
 serviceWorkerRegistration.register({
     onUpdate: (registration) => {
-        // When a new service worker is waiting, automatically activate it
-        if (registration && registration.waiting) {
-            // Send SKIP_WAITING message to the waiting service worker
-            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        dispatchLifecycleEvent("pwa-update-available");
 
-            // Listen for when the new service worker takes control
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                // Reload the page to get the latest content
-                window.location.reload();
-            });
+        if (registration && registration.waiting) {
+            registration.waiting.postMessage({ type: "SKIP_WAITING" });
         }
     },
     onSuccess: (registration) => {
-        console.log('Service worker registered successfully');
+        dispatchLifecycleEvent("pwa-ready", { registration });
     }
 });
