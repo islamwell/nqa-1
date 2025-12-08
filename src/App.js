@@ -14,19 +14,12 @@ import PlaylistDetail from "./containers/playlist/PlaylistDetail";
 
 const theme = createMuiTheme({
   typography: {
-    fontFamily: "Inter, Roboto, Arial",
+    fontFamily: "Roboto, Arial",
   },
   palette: {
     primary: {
-      main: "#0f766e",
+      main: "#179992",
     },
-    secondary: {
-      main: "#14b8a6",
-    },
-    background: {
-      default: "#0b1224",
-      paper: "#0f172a",
-    }
   },
 });
 
