@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Container, Typography, Paper, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Divider } from "@material-ui/core";
+import { usePreferences } from "../../contexts/PreferencesContext";
 
 const colorSchemes = [
   { value: "sepia", label: "Sepia" },
@@ -17,31 +18,12 @@ const languages = [
   { value: "english", label: "English" },
 ];
 
-const preferenceStorageKey = "user_preferences";
-
-const readPreferences = () => {
-  const stored = localStorage.getItem(preferenceStorageKey);
-  if (!stored) return {};
-
-  try {
-    return JSON.parse(stored);
-  } catch (error) {
-    return {};
-  }
-};
-
-const writePreferences = (preferences) => {
-  localStorage.setItem(preferenceStorageKey, JSON.stringify(preferences));
-};
-
 const Settings = () => {
-  const storedPreferences = readPreferences();
-  const [colorScheme, setColorScheme] = useState(storedPreferences.colorScheme || "light");
-  const [language, setLanguage] = useState(storedPreferences.language || "english");
-
-  useEffect(() => {
-    writePreferences({ colorScheme, language });
-  }, [colorScheme, language]);
+  const {
+    preferences: { colorScheme, language },
+    setColorScheme,
+    setLanguage,
+  } = usePreferences();
 
   return (
     <Container maxWidth="md" style={{ paddingTop: 32, paddingBottom: 32 }}>
