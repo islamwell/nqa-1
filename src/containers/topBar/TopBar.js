@@ -208,6 +208,11 @@ export default function PrimarySearchAppBar() {
     setOpen((state) => !state);
   };
 
+  const handleVersionClick = () => {
+    handleClose();
+    history.push("/settings");
+  };
+
   useEffect(() => {
     if (open) {
       document.getElementById("app-main-content").style.display = " none";
@@ -288,7 +293,7 @@ export default function PrimarySearchAppBar() {
                 history.push("/playlist")
                 handleClose()
               }} button={true}> Playlist </MenuItem>
-              <MenuItem button={false}>v{version}</MenuItem>
+              <MenuItem onClick={handleVersionClick} button={true}>v{version}</MenuItem>
               <MenuItem onClick={() => {
                 handleClose();
                 dispatch(downloadAudioList());
