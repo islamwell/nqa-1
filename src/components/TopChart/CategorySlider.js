@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Grid, Paper, Breadcrumbs, Link } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "../Image";
 import Slider from "react-slick";
@@ -60,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
 
   catLink: {
     cursor: "pointer",
-    color: "black",
+    color: theme.palette.text.primary,
     padding: theme.spacing(0),
     overflow: "hidden",
     textOverflow: "ellipses",
@@ -88,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: 'rgba(16, 107, 102, 0.75) !important',
+      backgroundColor: fade(theme.palette.primary.main, 0.75),
     },
     '& .slick-prev:before, & .slick-next:before': {
       display: 'none',
@@ -105,11 +106,11 @@ const useStyles = makeStyles((theme) => ({
     cursor: "pointer",
     backgroundColor: "transparent",
     "&:hover": {
-      backgroundColor: "rgba(76, 175, 80, 0.08)",
+      backgroundColor: fade(theme.palette.primary.main, 0.08),
     },
   },
   navZoneHover: {
-    backgroundColor: "rgba(76, 175, 80, 0.12)",
+    backgroundColor: fade(theme.palette.primary.main, 0.12),
   },
   navLeft: {
     left: 0,
@@ -126,26 +127,26 @@ const useStyles = makeStyles((theme) => ({
     width: 36,
     height: 36,
     borderRadius: '50%',
-    background: 'rgba(255,255,255,0.85)',
+    background: fade(theme.palette.primary.main, 0.9),
     boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
     transition: 'background 120ms ease, transform 120ms ease',
     '&:hover': {
-      background: 'rgba(255,255,255,1)',
+      background: theme.palette.primary.dark,
     },
     '&$arrowHover': {
-      background: 'rgba(255,255,255,1)'
+      background: theme.palette.primary.dark
     },
     '&$arrowHover $arrowIcon': {
-      color: '#f7f7f7'
+      color: theme.palette.getContrastText(theme.palette.primary.dark)
     }
   },
   arrowHover: {},
   arrowIcon: {
-    color: "#dddddddd",
+    color: theme.palette.getContrastText(theme.palette.primary.main),
     fontSize: 28,
     transition: 'color 120ms ease',
     '$arrowRoot:hover &': {
-      color: "#f7f7f7",
+      color: theme.palette.getContrastText(theme.palette.primary.dark),
     }
   }
 }));

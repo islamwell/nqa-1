@@ -4,7 +4,7 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 const preferenceStorageKey = "user_preferences";
 
 const defaultPreferences = {
-  colorScheme: "light",
+  colorScheme: "blue",
   language: "english",
 };
 
@@ -76,7 +76,7 @@ const PreferencesProvider = ({ children }) => {
   }, [preferences]);
 
   useEffect(() => {
-    const palette = paletteByScheme[preferences.colorScheme] || paletteByScheme.light;
+    const palette = paletteByScheme[preferences.colorScheme] || paletteByScheme.blue;
     document.body.style.backgroundColor = palette.background;
     document.body.style.color = palette.text;
     document.documentElement.setAttribute("data-color-scheme", preferences.colorScheme);
@@ -95,7 +95,7 @@ const PreferencesProvider = ({ children }) => {
   };
 
   const theme = useMemo(() => {
-    const palette = paletteByScheme[preferences.colorScheme] || paletteByScheme.light;
+    const palette = paletteByScheme[preferences.colorScheme] || paletteByScheme.blue;
     return createMuiTheme({
       typography: {
         fontFamily: "Roboto, Arial",
