@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Grid, Paper, Breadcrumbs, Link } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { alpha } from "@material-ui/core/styles/colorManipulator";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 import { useDispatch, useSelector } from "react-redux";
 import Image from "../Image";
 import Slider from "react-slick";
@@ -89,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: alpha(theme.palette.primary.main, 0.75),
+      backgroundColor: fade(theme.palette.primary.main, 0.75),
     },
     '& .slick-prev:before, & .slick-next:before': {
       display: 'none',
@@ -106,11 +106,11 @@ const useStyles = makeStyles((theme) => ({
     cursor: "pointer",
     backgroundColor: "transparent",
     "&:hover": {
-      backgroundColor: alpha(theme.palette.primary.main, 0.08),
+      backgroundColor: fade(theme.palette.primary.main, 0.08),
     },
   },
   navZoneHover: {
-    backgroundColor: alpha(theme.palette.primary.main, 0.12),
+    backgroundColor: fade(theme.palette.primary.main, 0.12),
   },
   navLeft: {
     left: 0,
@@ -127,7 +127,7 @@ const useStyles = makeStyles((theme) => ({
     width: 36,
     height: 36,
     borderRadius: '50%',
-    background: alpha(theme.palette.primary.main, 0.9),
+    background: fade(theme.palette.primary.main, 0.9),
     boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
     transition: 'background 120ms ease, transform 120ms ease',
     '&:hover': {
