@@ -6,30 +6,18 @@ import Catergory from "./containers/catergory";
 import Player from "./containers/player";
 import Layout from "./containers/layout";
 import Search from "./containers/search";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 import FavoritePage from "./containers/favoritePage/FavoritePage";
 import Playlist from "./containers/playlist";
 import PlaylistDetail from "./containers/playlist/PlaylistDetail";
-
-const theme = createMuiTheme({
-  typography: {
-    fontFamily: "Roboto, Arial",
-  },
-  palette: {
-    primary: {
-      main: "#179992",
-    },
-  },
-});
-
+import Settings from "./containers/settings";
+import PreferencesProvider from "./contexts/PreferencesContext";
 
 function App() {
-
   return (
-    <ThemeProvider theme={theme}>
+    <PreferencesProvider>
       <Router>
-        <Layout>    
+        <Layout>
           <Switch>
             <Route path="/category/:category/:subCategoryOne?/:subCategoryTwo?/:subCategoryThree?">
               <Catergory />
@@ -49,13 +37,16 @@ function App() {
             <Route exact path="/playlist/detail">
               <PlaylistDetail />
             </Route>
+            <Route exact path="/settings">
+              <Settings />
+            </Route>
             <Route exact path="/">
               <Home />
             </Route>
           </Switch>
         </Layout>
       </Router>
-    </ThemeProvider>
+    </PreferencesProvider>
   );
 }
 
