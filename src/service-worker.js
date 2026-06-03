@@ -86,11 +86,31 @@ registerRoute(
 
 registerRoute(
     ({ url }) => url.pathname.endsWith("topSong?page=1"),
-    new CacheFirst({
+    new StaleWhileRevalidate({
         cacheName: "topchart_cache",
         plugins: [
             new CacheableResponsePlugin({
                 statuses: [0, 200],
+            }),
+            new ExpirationPlugin({
+                maxAgeSeconds: 24 * 60 * 60, // 1 day
+                maxEntries: 10,
+            }),
+        ],
+    })
+);
+
+registerRoute(
+    ({ url }) => url.pathname.includes("/index.php/api/"),
+    new StaleWhileRevalidate({
+        cacheName: "api_cache",
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+            new ExpirationPlugin({
+                maxAgeSeconds: 24 * 60 * 60, // 1 day
+                maxEntries: 100,
             }),
         ],
     })

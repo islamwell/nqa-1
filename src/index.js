@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import { Provider } from "react-redux";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import { toast } from "react-toastify";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
 
@@ -19,12 +20,31 @@ ReactDOM.render(
 );
 
 // Auto-update configuration for PWA
+const UpdateToast = ({ registration }) => (
+    <div>
+        A new version of the app is available! 
+        <button 
+            onClick={() => {
+                if (registration && registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+            }} 
+            style={{ marginLeft: '10px', padding: '4px 8px', cursor: 'pointer', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', marginTop: '5px' }}
+        >
+            Refresh Now
+        </button>
+    </div>
+);
+
 serviceWorkerRegistration.register({
     onUpdate: (registration) => {
-        // When a new service worker is waiting, automatically activate it
+        // When a new service worker is waiting, notify the user
         if (registration && registration.waiting) {
-            // Send SKIP_WAITING message to the waiting service worker
-            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            toast.info(<UpdateToast registration={registration} />, { 
+                autoClose: false, 
+                closeOnClick: false, 
+                position: "bottom-center" 
+            });
 
             // Listen for when the new service worker takes control
             navigator.serviceWorker.addEventListener('controllerchange', () => {
