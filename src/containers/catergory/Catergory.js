@@ -4,7 +4,7 @@ import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import Pagination from "@material-ui/lab/Pagination";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import "swiper/components/pagination/pagination.min.css";
@@ -110,12 +110,17 @@ export default function Home() {
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;
 
+    const loaderRef = useRef(null);
+
     useEffect(() => {
-        window?.scrollTo({
-            top: 0,
-            behavior: "smooth",
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && showPagination && currentPage < totalPages) {
+                changePage(currentPage + 1);
+            }
         });
-    }, [currentPage]);
+        if (loaderRef.current) observer.observe(loaderRef.current);
+        return () => observer.disconnect();
+    }, [currentPage, showPagination, changePage, totalPages]);
 
 
 
@@ -177,15 +182,8 @@ export default function Home() {
                             return <ListItem currentPlayingPosition="category" key={item.id} data={item} />;
                         })}
                         {showPagination && (
-                            <Box py={2} display="flex" justifyContent="flex-end">
-                                <Pagination
-                                    onChange={handleChangePage}
-                                    size={matches ? "small" : "large"}
-                                    page={currentPage}
-                                    count={totalPages}
-                                    variant="outlined"
-                                    shape="rounded"
-                                />
+                            <Box py={2} display="flex" justifyContent="center" ref={loaderRef}>
+                                Loading more...
                             </Box>
                         )}
                     </Grid>

@@ -11,6 +11,8 @@ import { useHistory, useLocation } from "react-router-dom";
 import { DownalodNotification, Backdrop, DesktopDropdownMenu, MobileDropdownMenu } from "../../components";
 import { Button, Menu, MenuItem, Paper } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
+import { getAudioByName, getCategoryByName } from "../../db/services";
+import { navigateToCategory } from "../../helpers/navigateToCategory";
 import { downloadAudioList, updateOfflineStatus } from "../../store/slices/downloadSlice";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import PaletteIcon from "@material-ui/icons/Palette";
@@ -142,7 +144,29 @@ export default function PrimarySearchAppBar() {
   const [searchValue, setSearchValue] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [autocompleteResults, setAutocompleteResults] = useState({ audios: [], categories: [] });
   const location = useLocation();
+
+  useEffect(() => {
+    const fetchAutocomplete = async () => {
+        if (!searchValue || searchValue.trim().length === 0) {
+            setAutocompleteResults({ audios: [], categories: [] });
+            return;
+        }
+        try {
+            const audios = await getAudioByName(searchValue, 1);
+            const cats = await getCategoryByName(searchValue, 1);
+            setAutocompleteResults({ 
+                audios: audios.data.slice(0, 5), 
+                categories: cats.data ? cats.data.slice(0, 5) : [] 
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    };
+    const timeoutId = setTimeout(fetchAutocomplete, 200);
+    return () => clearTimeout(timeoutId);
+  }, [searchValue]);
 
   useEffect(() => {
     const saved = localStorage.getItem('recent_searches');
@@ -327,7 +351,38 @@ export default function PrimarySearchAppBar() {
                 <span style={{ fontSize: 16 }}>✕</span>
               </IconButton>
             )}
-            {searchFocused && recentSearches.length > 0 && !searchValue && (
+            {searchFocused && (searchValue ? (
+              (autocompleteResults.audios.length > 0 || autocompleteResults.categories.length > 0) && (
+              <Paper style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 999, color: 'black', maxHeight: 400, overflow: 'auto' }}>
+                {autocompleteResults.categories.length > 0 && (
+                   <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'gray', background: '#f5f5f5' }}>Categories</div>
+                )}
+                {autocompleteResults.categories.map((item, i) => (
+                  <MenuItem key={'cat-'+i} onClick={() => {
+                      setSearchFocused(false);
+                      setSearchValue(item.name);
+                      saveSearch(item.name);
+                      navigateToCategory(item.id, history);
+                  }}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+                {autocompleteResults.audios.length > 0 && (
+                   <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'gray', background: '#f5f5f5' }}>Audios</div>
+                )}
+                {autocompleteResults.audios.map((item, i) => (
+                  <MenuItem key={'aud-'+i} onClick={() => {
+                      setSearchFocused(false);
+                      setSearchValue(`"${item.name}"`);
+                      saveSearch(`"${item.name}"`);
+                      history.push(`/search?"${item.name}"`);
+                  }}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </Paper>
+              )
+            ) : recentSearches.length > 0 && (
               <Paper style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 999, color: 'black' }}>
                 <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'gray', display: 'flex', justifyContent: 'space-between' }}>
                   <span>Recent Searches</span>
@@ -339,7 +394,7 @@ export default function PrimarySearchAppBar() {
                   </MenuItem>
                 ))}
               </Paper>
-            )}
+            ))}
           </div>
           <div>
             <IconButton aria-controls="menu-appbar" aria-haspopup="true" onClick={handleMenu} color="inherit">

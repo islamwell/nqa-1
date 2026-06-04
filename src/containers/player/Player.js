@@ -211,12 +211,9 @@ export default function Player() {
                             </Box>
                         </Box>
 
-                        <Box display="flex" alignItems="center" style={{ height: '100%', gap: 2 }} mr={2}>
+                        <Box display="flex" alignItems="center" style={{ height: '100%' }} mr={2}>
                                 <IconButton className={classes.controlButtonLarge} onClick={handleMaximize}>
                                     <ExpandLessIcon style={{ color: 'white' }} />
-                                </IconButton>
-                                <IconButton className={classes.controlButtonLarge} onClick={handleCloseButton}>
-                                    <CloseIcon style={{ color: 'white' }} />
                                 </IconButton>
                         </Box>
                     </Box>

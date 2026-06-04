@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
@@ -6,7 +6,6 @@ import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
 import { Image, ListItem, RecentlyPlayed } from "../../components";
 import { useSelector } from "react-redux";
-import Pagination from "@material-ui/lab/Pagination";
 import { useData } from "../../hooks/useData";
 import { useLocation, useHistory } from "react-router-dom";
 import { useMediaQuery } from "@material-ui/core";
@@ -116,12 +115,27 @@ export default function Search() {
   const showPagination = !loading && audioList.length > 0 && totalPages > 1;
   const showCategoryPagination = !loading && categoryList.length > 0 && categorySearchTotalPages > 1;
 
+  const audioLoaderRef = useRef(null);
   useEffect(() => {
-    window?.scrollTo({
-      top: 0,
-      behavior: "smooth",
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && showPagination && currentPage < totalPages) {
+        changePage(currentPage + 1);
+      }
     });
-  }, [currentPage]);
+    if (audioLoaderRef.current) observer.observe(audioLoaderRef.current);
+    return () => observer.disconnect();
+  }, [currentPage, showPagination, changePage, totalPages]);
+
+  const catLoaderRef = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && showCategoryPagination && categorySearchCurrentPage < categorySearchTotalPages) {
+        changeCategorySearchPage(categorySearchCurrentPage + 1);
+      }
+    });
+    if (catLoaderRef.current) observer.observe(catLoaderRef.current);
+    return () => observer.disconnect();
+  }, [categorySearchCurrentPage, showCategoryPagination, changeCategorySearchPage, categorySearchTotalPages]);
 
   return (
     <div style={playing ? { paddingBottom: 150 } : { paddingBottom: 50 }} className={classes.root}>
@@ -177,15 +191,8 @@ export default function Search() {
                 })}
 
                 {showPagination && (
-                  <Box py={2} display="flex" justifyContent="flex-end">
-                    <Pagination
-                      onChange={handleChangePage}
-                      size={matches ? "small" : "large"}
-                      page={currentPage}
-                      count={totalPages}
-                      variant="outlined"
-                      shape="rounded"
-                    />
+                  <Box py={2} display="flex" justifyContent="center" ref={audioLoaderRef}>
+                    Loading more...
                   </Box>
                 )}
               </Box>
@@ -215,15 +222,8 @@ export default function Search() {
                 </Grid>
 
                 {showCategoryPagination && (
-                  <Box py={2} display="flex" justifyContent="flex-end">
-                    <Pagination
-                      onChange={handleCategorySearchChangePage}
-                      size={matches ? "small" : "large"}
-                      page={categorySearchCurrentPage}
-                      count={categorySearchTotalPages}
-                      variant="outlined"
-                      shape="rounded"
-                    />
+                  <Box py={2} display="flex" justifyContent="center" ref={catLoaderRef}>
+                    Loading more...
                   </Box>
                 )}
               </Box>

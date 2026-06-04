@@ -33,6 +33,11 @@ export const useData = (props = {}) => {
     const [categorySearchCurrentPage, setCategorySearchCurrentPage] = useState(1);
     const [categorySearchTotalPages, setCategorySearchTotalPages] = useState(1);
 
+    useEffect(() => {
+        setCurrentPage(1);
+        setCategorySearchCurrentPage(1);
+    }, [searchText, categoryId]);
+
     // Fetch MP3s from multiple child categories and merge them
     const fetchFromChildCategories = async (parentCategoryId) => {
         const parent = getCategoryById(parentCategoryId);
@@ -95,7 +100,7 @@ export const useData = (props = {}) => {
                     try {
                         const childResult = await fetchFromChildCategories(categoryId);
                         if (childResult && childResult.data.length > 0) {
-                            setAudioList(childResult.data);
+                            setAudioList(prev => currentPage === 1 ? childResult.data : [...prev, ...childResult.data]);
                             setTotalPages(childResult.allpage || 1);
                             setLoading(false);
                             return;
@@ -104,16 +109,16 @@ export const useData = (props = {}) => {
 
                     try {
                         const offline = await offlineAPI.getAudioByCategory(categoryId, currentPage);
-                        setAudioList(offline.data);
+                        setAudioList(prev => currentPage === 1 ? offline.data : [...prev, ...offline.data]);
                         setTotalPages(offline.allpage || 1);
                     } catch (_) {
-                        setAudioList(list);
+                        setAudioList(prev => currentPage === 1 ? list : [...prev, ...list]);
                         setTotalPages(pages);
                     } finally {
                         setLoading(false);
                     }
                 } else {
-                    setAudioList(list);
+                    setAudioList(prev => currentPage === 1 ? list : [...prev, ...list]);
                     setTotalPages(pages);
                     setLoading(false);
                 }
@@ -122,25 +127,25 @@ export const useData = (props = {}) => {
                 try {
                     if (searchText) {
                         const res = await offlineAPI.getAudioByName(searchText, currentPage);
-                        setAudioList(res.data);
+                        setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
                         setTotalPages(res.allpage || 1);
                     } else if (categoryId) {
                         // Try child categories first
                         try {
                             const childResult = await fetchFromChildCategories(categoryId);
                             if (childResult && childResult.data.length > 0) {
-                                setAudioList(childResult.data);
+                                setAudioList(prev => currentPage === 1 ? childResult.data : [...prev, ...childResult.data]);
                                 setTotalPages(childResult.allpage || 1);
                                 setLoading(false);
                                 return;
                             }
                         } catch (_) {}
                         const res = await offlineAPI.getAudioByCategory(categoryId, currentPage);
-                        setAudioList(res.data);
+                        setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
                         setTotalPages(res.allpage || 1);
                     } else {
                         const res = await offlineAPI.getAudio(currentPage);
-                        setAudioList(res.data);
+                        setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
                         setTotalPages(res.allpage || 1);
                     }
                 } catch (_) {}
@@ -158,15 +163,15 @@ export const useData = (props = {}) => {
 
             if (searchText) {
                 const res = await offlineAPI.getAudioByName(searchText, currentPage);
-                setAudioList(res.data);
+                setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
                 setTotalPages(res.allpage);
             } else if (categoryId) {
                 const res = await offlineAPI.getAudioByCategory(categoryId, currentPage);
-                setAudioList(res.data);
+                setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
                 setTotalPages(res.allpage);
             } else {
                 const res = await offlineAPI.getAudio(currentPage);
-                setAudioList(res.data);
+                setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
                 setTotalPages(res.allpage);
             }
 
@@ -195,7 +200,7 @@ export const useData = (props = {}) => {
     useEffect(() => {
         const getCategoryList = async () => {
             const res = offlineAPI.getCategoryByName(searchText, categorySearchCurrentPage);
-            setCategoryList(res.data);
+            setCategoryList(prev => categorySearchCurrentPage === 1 ? res.data : [...prev, ...res.data]);
             setCategorySearchTotalPages(res.allpage);
         };
 

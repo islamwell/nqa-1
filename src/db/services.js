@@ -2,6 +2,36 @@ import db from "./db";
 import categories from "../data/category-strcture";
 import fuzzysort from "fuzzysort";
 
+const synonymGroups = [
+    ["quran", "koran"],
+    ["hadith", "hadis", "hadees"],
+    ["azan", "adhan", "athan"],
+    ["ramadan", "ramzan", "ramadhan"],
+    ["namaz", "salah", "salat"],
+];
+
+const buildSearchRegex = (searchText) => {
+    if (!searchText) return null;
+    if (searchText.startsWith('"')) {
+        const cleaned = searchText.replace(/"/g, "");
+        return new RegExp(cleaned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    }
+    const words = searchText.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return null;
+
+    const regexParts = words.map(word => {
+        let variants = [word];
+        for (const group of synonymGroups) {
+            if (group.includes(word)) {
+                variants = group;
+                break;
+            }
+        }
+        return `(?=.*\\b(?:${variants.join('|')}))`;
+    });
+    return new RegExp(`^${regexParts.join('')}.*`, 'i');
+};
+
 const pageSize = 10;
 
 export const addAudio = async (data) => {
@@ -13,12 +43,13 @@ export const getAudioByName = async (searchText, page) => {
     // https://github.com/dfahlander/Dexie.js/issues/838
     try {
         const allItems = await db.table("audioList").limit(HARD_LIMIT).toArray();
-        let filtered = searchText.startsWith('"')
-            ? allItems.filter(item => item.name.toLowerCase().includes(searchText.replace(/"/g, "").toLowerCase()))
-            : fuzzysort.go(searchText, allItems, { key: 'name', allowTypo: true }).map(result => ({
-                ...result.obj,
-                highlightName: fuzzysort.highlight(result, '<b style="background: yellow">', '</b>')
-            }));
+        const regex = buildSearchRegex(searchText);
+        if (!regex) return { data: [], allpage: 1 };
+
+        let filtered = allItems.filter(item => regex.test(item.name)).map(item => ({
+            ...item,
+            highlightName: item.name
+        }));
         if (allItems.length === HARD_LIMIT) {
             // We didn't get all data in first try.
             // Need to continue filtering one by one:
@@ -27,12 +58,10 @@ export const getAudioByName = async (searchText, page) => {
                 .offset(HARD_LIMIT)
                 .toArray();
 
-            const filteredRest = searchText.startsWith('"')
-                ? rest.filter(item => item.name.toLowerCase().includes(searchText.replace(/"/g, "").toLowerCase()))
-                : fuzzysort.go(searchText, rest, { key: 'name', allowTypo: true }).map(result => ({
-                    ...result.obj,
-                    highlightName: fuzzysort.highlight(result, '<b style="background: yellow">', '</b>')
-                }));
+            const filteredRest = rest.filter(item => regex.test(item.name)).map(item => ({
+                ...item,
+                highlightName: item.name
+            }));
 
             filtered = filtered.concat(filteredRest);
         }
@@ -124,12 +153,13 @@ const recursivSearchById = (categories, id) => {
 };
 
 const recursivSearchByName = (categories, searchText) => {
-    let filtered = searchText.startsWith('"')
-        ? categories.filter(item => item.name.toLowerCase().includes(searchText.replace(/"/g, "").toLowerCase()))
-        : fuzzysort.go(searchText, categories, { key: 'name', allowTypo: true }).map(result => ({
-            ...result.obj,
-            highlightName: fuzzysort.highlight(result, '<b style="background: yellow">', '</b>')
-        }));
+    const regex = buildSearchRegex(searchText);
+    if (!regex) return [];
+
+    let filtered = categories.filter(item => regex.test(item.name)).map(item => ({
+        ...item,
+        highlightName: item.name
+    }));
 
     categories.forEach((category) => {
         if (category.subCategories) {
