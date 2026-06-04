@@ -5,6 +5,21 @@ import * as offlineAPI from "../db/services";
 import { useDispatch } from "react-redux";
 import { updateCurrentAudioList } from "../store/slices/playerSlice";
 import { domain } from "../data/config";
+import { getCategoryById } from "../db/services";
+
+// Collect all leaf (countSub === 0) category IDs under a parent
+const collectLeafCategoryIds = (category) => {
+    const ids = [];
+    if (!category) return ids;
+    if (!category.subCategories || category.subCategories.length === 0) {
+        ids.push(category.id);
+    } else {
+        for (const sub of category.subCategories) {
+            ids.push(...collectLeafCategoryIds(sub));
+        }
+    }
+    return ids;
+};
 
 export const useData = (props = {}) => {
     const dispatch = useDispatch();
@@ -17,6 +32,40 @@ export const useData = (props = {}) => {
     const [categoryList, setCategoryList] = useState([]);
     const [categorySearchCurrentPage, setCategorySearchCurrentPage] = useState(1);
     const [categorySearchTotalPages, setCategorySearchTotalPages] = useState(1);
+
+    // Fetch MP3s from multiple child categories and merge them
+    const fetchFromChildCategories = async (parentCategoryId) => {
+        const parent = getCategoryById(parentCategoryId);
+        if (!parent || !parent.subCategories || parent.subCategories.length === 0) {
+            return null; // Not a parent category
+        }
+        const leafIds = collectLeafCategoryIds(parent);
+        if (leafIds.length === 0) return null;
+
+        const allResults = [];
+        // Fetch page 1 from every leaf child
+        const promises = leafIds.map((id) =>
+            axios
+                .get(`${domain}/index.php/api/songCategory?page=1&categoryId=${id}`)
+                .then((res) => res?.data?.data || [])
+                .catch(() => [])
+        );
+        const results = await Promise.all(promises);
+        for (const list of results) {
+            allResults.push(...list);
+        }
+
+        if (allResults.length === 0) return null;
+
+        // Client-side pagination
+        const pageSize = 10;
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        return {
+            data: allResults.slice(start, end),
+            allpage: Math.ceil(allResults.length / pageSize),
+        };
+    };
 
     const getAudioListOnline = async () => {
         if (!shouldSearch) {
@@ -42,6 +91,17 @@ export const useData = (props = {}) => {
                 const pages = res?.data?.allpage || 1;
 
                 if (Array.isArray(list) && list.length === 0 && categoryId) {
+                    // Try fetching from child subcategories first
+                    try {
+                        const childResult = await fetchFromChildCategories(categoryId);
+                        if (childResult && childResult.data.length > 0) {
+                            setAudioList(childResult.data);
+                            setTotalPages(childResult.allpage || 1);
+                            setLoading(false);
+                            return;
+                        }
+                    } catch (_) {}
+
                     try {
                         const offline = await offlineAPI.getAudioByCategory(categoryId, currentPage);
                         setAudioList(offline.data);
@@ -65,6 +125,16 @@ export const useData = (props = {}) => {
                         setAudioList(res.data);
                         setTotalPages(res.allpage || 1);
                     } else if (categoryId) {
+                        // Try child categories first
+                        try {
+                            const childResult = await fetchFromChildCategories(categoryId);
+                            if (childResult && childResult.data.length > 0) {
+                                setAudioList(childResult.data);
+                                setTotalPages(childResult.allpage || 1);
+                                setLoading(false);
+                                return;
+                            }
+                        } catch (_) {}
                         const res = await offlineAPI.getAudioByCategory(categoryId, currentPage);
                         setAudioList(res.data);
                         setTotalPages(res.allpage || 1);
