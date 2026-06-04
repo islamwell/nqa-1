@@ -4,7 +4,7 @@ import { Box,  IconButton,  Paper } from "@material-ui/core";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import { useDispatch, useSelector } from "react-redux";
 import { addToDowanloadingQueue } from "../../store/slices/playerSlice";
-import { Image} from '../../components'
+import { Image, DynamicAvatar } from '../../components'
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
@@ -41,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
     image: {
         height: 100,
         width: 100,
+        flexShrink: 0,
     },
 }));
 
@@ -55,9 +56,15 @@ export default function ListItem({ data }) {
         dispatch(addToDowanloadingQueue({ name: name, id: id, link: link, progress: 0 }));
     };
 
+    const isGenericImage = !image || image.includes("ic_music_node.png");
+
     return (
         <Paper elevation={0} className={classes.mainContainer}>
-            <Image src={image}  className={classes.image} />
+            {isGenericImage ? (
+                <DynamicAvatar name={name} className={classes.image} isPlaying={false} />
+            ) : (
+                <Image src={image}  className={classes.image} />
+            )}
             <Box pl={2} py={1} display="flex" flexDirection="column" justifyContent="space-between">
                 <Box
                     className={classes.title}

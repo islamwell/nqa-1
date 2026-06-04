@@ -9,7 +9,7 @@ import parse from "html-react-parser";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { ActionList, Image } from "../../components";
+import { ActionList, Image, DynamicAvatar } from "../../components";
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -53,6 +53,7 @@ const useStyles = makeStyles((theme) => ({
   image: {
     height: 100,
     width: 100,
+    flexShrink: 0,
   },
 
   buttonOutline: {
@@ -124,21 +125,17 @@ export default function ListItem({ data, currentPlayingPosition, children }) {
       .catch((e) => { });
   }, [downloadingIds, link]);
 
-  // useEffect(() => {
-  //   if (link.slice(-3) === "mp4") {
-  //     setFileType("video/mp4");
-  //   } else {
-  //     setFileType("audio/mp3");
-  //   }
-  // }, []);
-
-  // download notification toast  ##########################
-  // let toastId = React.useRef(id);
-  // const dismiss = () => toast.dismiss(toastId.current);
+  // is Generic image check
+  const isGenericImage = !image || image.includes("ic_music_node.png");
+  const isCurrentlyPlaying = playing && id === currentPlayingId;
 
   return (
   <Paper variant="outlined" className={classes.mainContainer}>
-      <Image src={image} className={classes.image} />
+      {isGenericImage ? (
+        <DynamicAvatar name={name} className={classes.image} isPlaying={isCurrentlyPlaying} />
+      ) : (
+        <Image src={image} className={classes.image} />
+      )}
       <Box
         px={1}
         py={1}
