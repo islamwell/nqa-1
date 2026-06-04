@@ -20,6 +20,11 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2),
     borderRadius: 10,
     overflow: "hidden",
+    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    },
 
     [theme.breakpoints.down("sm")]: {
       //padding: theme.spacing(3, 1, 3, 1),
@@ -149,12 +154,12 @@ export default function ListItem({ data, currentPlayingPosition, children }) {
               {(playing && id === currentPlayingId) ? (
                 <PauseCircleOutlineRoundedIcon
                   fontSize="large"
-                  style={{ color: "#179992" }}
+                  color="primary"
                 />
               ) : (
                 <PlayCircleOutlineIcon
                   fontSize="large"
-                  style={{ color: "#179992" }}
+                  color="primary"
                 />
               )}
             </IconButton>

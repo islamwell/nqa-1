@@ -1,8 +1,10 @@
 import Cover from "../../assets/image.png";
 
 import React, { useEffect, useState } from "react";
+import { useTheme } from "@material-ui/core/styles";
 
 export default function Image({ src, ...rest }) {
+    const theme = useTheme();
     const [status, setStatus] = useState("loading");
 
     useEffect(() => {
@@ -32,7 +34,7 @@ export default function Image({ src, ...rest }) {
                 {...rest}
             />
 
-            {status === "loading" && <div style={{ backgroundColor: "#f2f2f2" }} {...rest} />}
+            {status === "loading" && <div style={{ backgroundColor: theme.palette.action.hover }} {...rest} />}
 
             {status === "error" && <img src={Cover} alt="cover_image" {...rest} />}
         </div>

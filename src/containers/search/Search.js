@@ -45,16 +45,19 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: 15,
     width: "100%",
     height: "auto",
+    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
   },
 
   categoryItem: {
     cursor: "pointer",
     width: "25%",
     paddingRight: 20,
-    //color: theme.palette.text.secondary,
-    //marginRight: theme.spacing(5),
     marginBottom: theme.spacing(2),
     fontSize: theme.typography.subtitle2,
+    "&:hover $image": {
+      transform: "translateY(-4px)",
+      boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+    },
 
     [theme.breakpoints.down("xs")]: {
       width: "33%",

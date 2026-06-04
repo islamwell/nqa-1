@@ -38,6 +38,11 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 10,
+        transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+        "&:hover": {
+            transform: "translateY(-2px)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        },
 
         [theme.breakpoints.down("sm")]: {
             display: "flex",
@@ -157,11 +162,12 @@ export default function Home() {
                             </Box>
                                                         <Box className="icon-group" ml={1}>
                                                             <IconButton onClick={handleFavorite}  size="small">
-                                                                <FavoriteBorderIcon
-                                                                    style={
-                                                                        present ? { color: "rgb(240,100,100)" } : { color: "#777" }
-                                                                    }
-                                                                />
+                                                                    <FavoriteBorderIcon
+                                                                        color={!present ? "action" : "inherit"}
+                                                                        style={
+                                                                            present ? { color: "rgb(240,100,100)" } : { color: undefined }
+                                                                        }
+                                                                    />
                                                             </IconButton>
                                                         </Box>
                         </Paper>

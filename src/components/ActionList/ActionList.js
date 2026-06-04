@@ -277,13 +277,14 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                             downloadResource(link, name);
                                         }}
                                     >
-                                        <DownloadIcon style={{ color: currentPlayingPosition === "player" ? 'white' : '#777' }} />
+                                        <DownloadIcon color={currentPlayingPosition === "player" ? "inherit" : "action"} style={{ color: currentPlayingPosition === "player" ? 'white' : undefined }} />
                                     </a>
                                 </IconButton>
                                 <IconButton onClick={handleFavorite} size="small">
                                     <FavoriteBorderIcon
+                                        color={!present && currentPlayingPosition !== "player" ? "action" : "inherit"}
                                         style={
-                                            present ? { color: "rgb(240,100,100)" } : { color: currentPlayingPosition === "player" ? "white" : "#777" }
+                                            present ? { color: "rgb(240,100,100)" } : { color: currentPlayingPosition === "player" ? "white" : undefined }
                                         }
                                     />
                                 </IconButton>
@@ -291,13 +292,13 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                     onClick={() => setDisplay(true)}
                                     size="small"
                                 >
-                                    <ShareIcon style={{ color: currentPlayingPosition === "player" ? "white" : "#777" }} />
+                                    <ShareIcon color={currentPlayingPosition === "player" ? "inherit" : "action"} style={{ color: currentPlayingPosition === "player" ? "white" : undefined }} />
                                 </IconButton>
                                 <IconButton
                                     onClick={() => setPlaylist(true)}
                                     size="small"
                                 >
-                                    <ListIcon style={{ color: currentPlayingPosition === "player" ? "white" : "#777" }} />
+                                    <ListIcon color={currentPlayingPosition === "player" ? "inherit" : "action"} style={{ color: currentPlayingPosition === "player" ? "white" : undefined }} />
                                 </IconButton>
                                 </div>
                             </>
@@ -313,7 +314,7 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                         notify("Link has been copied");
                                         e.target.style.color = "rgb(29,161,245)";
                                         setTimeout(() => {
-                                            e.target.style.color = "#777";
+                                            e.target.style.color = "";
                                         }, 2000);
                                         navigator.clipboard.writeText(link);
                                     }}
