@@ -202,20 +202,13 @@ export default function Player() {
             <Box className={classes.playerContainer} width="100%" display="flex" flexDirection="column" justifyContent={minimized ? 'center' : 'flex-start'}>
                 {minimized ? (
                     <Box display="flex" alignItems="center" justifyContent="space-between" width="100%" px={1} py={0.5} style={{ height: '100%' }}>
-                        <Box display="flex" alignItems="center" style={{ gap: 8 }}>
-                            <IconButton size="small" className={classes.controlButton} onClick={handleTogglePlayPause}>
-                                {playing ? <PauseIcon style={{ color: 'white' }} /> : <PlayArrowIcon style={{ color: 'white' }} />}
-                            </IconButton>
-                            <Box onClick={onCategoryClick} style={{ cursor: 'pointer' }}>
-                                <Typography className={classes.title} noWrap>{name}</Typography>
-                            </Box>
-                        </Box>
+                        <IconButton size="small" className={classes.controlButton} onClick={handleTogglePlayPause}>
+                            {playing ? <PauseIcon style={{ color: 'white' }} /> : <PlayArrowIcon style={{ color: 'white' }} />}
+                        </IconButton>
 
-                        <Box display="flex" alignItems="center" style={{ height: '100%' }} mr={2}>
-                                <IconButton className={classes.controlButtonLarge} onClick={handleMaximize}>
-                                    <ExpandLessIcon style={{ color: 'white' }} />
-                                </IconButton>
-                        </Box>
+                        <IconButton className={classes.controlButtonLarge} onClick={handleMaximize}>
+                            <ExpandLessIcon style={{ color: 'white' }} />
+                        </IconButton>
                     </Box>
                 ) : (
                     <Box display="flex" justifyContent="space-between" alignItems="center" px={1}>
