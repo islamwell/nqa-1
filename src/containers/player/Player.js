@@ -160,10 +160,27 @@ export default function Player() {
         const player = document.getElementsByTagName("audio")[0];
         if (player && !player?.onended) {
             player.onended = function (e) {
+                // Clear progress when the lecture finishes so it starts at 0 next time
+                if (id && id !== -1) {
+                    localStorage.removeItem(`nqa_playback_progress_${id}`);
+                }
                 handleNext();
             };
         }
     }, [id]);
+
+    const saveProgress = (time) => {
+        if (!id || id === -1) return;
+        localStorage.setItem(`nqa_playback_progress_${id}`, time);
+    };
+
+    const restoreProgress = (audio) => {
+        if (!id || id === -1) return;
+        const savedTime = localStorage.getItem(`nqa_playback_progress_${id}`);
+        if (savedTime && parseFloat(savedTime) > 0) {
+            audio.currentTime = parseFloat(savedTime);
+        }
+    };
 
     const matches = useMediaQuery('(max-width:768px)');
     const sm = useMediaQuery('(max-width:362px)');
@@ -260,6 +277,8 @@ export default function Player() {
                     className={classes.player}
                     autoPlay
                     src={link}
+                    onListen={(e) => saveProgress(e.target.currentTime)}
+                    onLoadedData={(e) => restoreProgress(e.target)}
                     onClickNext={handleNext}
                     onClickPrevious={handlePrevious}
                     onPlay={() => togglePlayer(true)}
