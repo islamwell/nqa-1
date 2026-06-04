@@ -178,7 +178,7 @@ export default function Player() {
             zIndex={2}
             style={
                 minimized
-                    ? { height: '56px' }
+                    ? { height: '56px', width: '20%', left: 'auto', right: 20, bottom: 20, borderRadius: 10 }
                     : (sm ? { height: '160px' } : matches ? { height: '145px' } : {})
             }
         >

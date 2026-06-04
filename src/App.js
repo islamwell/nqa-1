@@ -20,9 +20,12 @@ function App() {
   const dispatch = useDispatch();
   const { link } = useSelector((state) => state.player);
 
+  const initialLoad = React.useRef(true);
+
   useEffect(() => {
-    // Only auto-play if nothing is currently playing/set
-    if (!link) {
+    // Only auto-play once on initial load if nothing is currently playing/set
+    if (initialLoad.current && !link) {
+      initialLoad.current = false;
       dispatch(
         changeURL({
           id: 3072,
