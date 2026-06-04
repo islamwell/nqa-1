@@ -17,7 +17,7 @@ import { changeFav } from "../../store/slices/favoriteSlice";
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        backgroundColor: "#f7f7f7",
+        backgroundColor: theme.palette.background.default,
         minHeight: `calc(100vh - 120px)`,
     },
 

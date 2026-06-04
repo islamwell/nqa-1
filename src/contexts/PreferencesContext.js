@@ -4,7 +4,7 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 const preferenceStorageKey = "user_preferences";
 
 const defaultPreferences = {
-  colorScheme: "blue",
+  colorScheme: "green",
   language: "english",
 };
 
