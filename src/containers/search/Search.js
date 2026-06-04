@@ -125,12 +125,19 @@ export default function Search() {
       <Container maxWidth="md">
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Box display="flex" mb={1} ml={1} className={classes.title} fontSize="h4.fontSize">
-              <Box fontWeight="fontWeightBold" mr={2}>
-                Result for
+            {searchText && (
+              <Box display="flex" mb={1} ml={1} className={classes.title} fontSize="h4.fontSize">
+                <Box fontWeight="fontWeightBold" mr={2}>
+                  Result for
+                </Box>
+                <Box>{decodeURIComponent(searchText)}</Box>
               </Box>
-              <Box>{decodeURIComponent(searchText)}</Box>
-            </Box>
+            )}
+            {!searchText && (
+              <Box mb={1} ml={1} className={classes.title} fontSize="h4.fontSize" fontWeight="fontWeightBold">
+                Search Audio & Categories
+              </Box>
+            )}
           </Grid>
           <Grid item xs={12} md={8}>
             <Box pb={3}>
@@ -158,8 +165,8 @@ export default function Search() {
             {activeTab === 1 && (
               <Box>
                 {audioList.length === 0 && (
-                  <Box px={2} py={2}>
-                    No result found
+                  <Box px={2} py={2} color="text.secondary" fontStyle="italic">
+                    {searchText ? "No result found for this query." : "Type above to search for audios..."}
                   </Box>
                 )}
                 {audioList.map((item, key) => {
@@ -184,8 +191,8 @@ export default function Search() {
               <Box>
                 <Grid container>
                   {categoryList.length === 0 && (
-                    <Box alignItems="center" px={2} my={2}>
-                      No result found
+                    <Box px={2} py={2} color="text.secondary" fontStyle="italic">
+                      {searchText ? "No result found for this query." : "Type above to search for categories..."}
                     </Box>
                   )}
                   {categoryList.map((item) => (

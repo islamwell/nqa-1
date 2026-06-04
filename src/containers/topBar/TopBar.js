@@ -7,9 +7,9 @@ import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { DownalodNotification, Backdrop, DesktopDropdownMenu, MobileDropdownMenu } from "../../components";
-import { Button, Menu, MenuItem } from "@material-ui/core";
+import { Button, Menu, MenuItem, Paper } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
 import { downloadAudioList, updateOfflineStatus } from "../../store/slices/downloadSlice";
 import ArchiveIcon from "@material-ui/icons/Archive";
@@ -138,15 +138,65 @@ export default function PrimarySearchAppBar() {
     setAnchorEl(null);
   };
 
+  const [searchValue, setSearchValue] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('recent_searches');
+    if (saved) setRecentSearches(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/search')) {
+       setSearchValue(decodeURIComponent(location.search.replace('?', '')));
+    } else {
+       setSearchValue("");
+    }
+  }, [location.pathname, location.search]);
+
+  const saveSearch = (term) => {
+    if (!term || !term.trim()) return;
+    const updated = [term, ...recentSearches.filter(t => t !== term)].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('recent_searches', JSON.stringify(updated));
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      saveSearch(searchValue);
+      setSearchFocused(false);
+      e.target.blur();
+    }
+  };
+
+  const handleRecentClick = (term) => {
+    setSearchValue(term);
+    saveSearch(term);
+    setSearchFocused(false);
+    if (!history.location.pathname.startsWith('/search')) {
+        history.push(`/search?${term}`);
+    } else {
+        history.replace(`/search?${term}`);
+    }
+  };
+
   const handleSearch = (e) => {
+    const val = e.target.value;
+    setSearchValue(val);
     dispatch(
       changeSubCatsVisible(
         {
           subCatsVisible: false
         }
       )
-    )
-    history.push(`/search?${e.target.value}`);
+    );
+    if (!history.location.pathname.startsWith('/search')) {
+      history.push(`/search?${val}`);
+    } else {
+      history.replace(`/search?${val}`);
+    }
   };
 
   const handleHomeButtom = () => {
@@ -250,7 +300,11 @@ export default function PrimarySearchAppBar() {
               <SearchIcon />
             </div>
             <InputBase
+              value={searchValue}
               onChange={handleSearch}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+              onKeyDown={handleKeyDown}
               placeholder="Search…"
               classes={{
                 root: classes.inputRoot,
@@ -258,6 +312,33 @@ export default function PrimarySearchAppBar() {
               }}
               inputProps={{ "aria-label": "search" }}
             />
+            {searchValue && (
+              <IconButton 
+                size="small" 
+                onClick={() => {
+                  setSearchValue("");
+                  if (history.location.pathname.startsWith('/search')) {
+                    history.push("/");
+                  }
+                }} 
+                style={{ position: 'absolute', right: 5, top: 4, color: 'white' }}
+              >
+                <span style={{ fontSize: 16 }}>✕</span>
+              </IconButton>
+            )}
+            {searchFocused && recentSearches.length > 0 && !searchValue && (
+              <Paper style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 999, color: 'black' }}>
+                <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'gray', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Recent Searches</span>
+                  <span style={{ cursor: 'pointer' }} onClick={() => { setRecentSearches([]); localStorage.removeItem('recent_searches'); }}>Clear</span>
+                </div>
+                {recentSearches.map((term, i) => (
+                  <MenuItem key={i} onClick={() => handleRecentClick(term)}>
+                    {term}
+                  </MenuItem>
+                ))}
+              </Paper>
+            )}
           </div>
           <div>
             <IconButton aria-controls="menu-appbar" aria-haspopup="true" onClick={handleMenu} color="inherit">
