@@ -18,7 +18,10 @@ import { setCacheNameDetails } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
 
 clientsClaim();
-self.skipWaiting(); // Force active immediately to push updates to old clients
+
+self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Force active immediately to push updates to old clients safely
+});
 
 setCacheNameDetails({
     prefix: "nurulquran",

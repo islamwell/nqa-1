@@ -19,6 +19,18 @@ ReactDOM.render(
     document.getElementById("root")
 );
 
+// Global listener to ensure the page reloads as soon as the new service worker takes over,
+// even if it happens before the onUpdate callback runs.
+let refreshing = false;
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
+    });
+}
+
 // Auto-update configuration for PWA (Forced automatically)
 
 serviceWorkerRegistration.register({
@@ -27,12 +39,6 @@ serviceWorkerRegistration.register({
         if (registration && registration.waiting) {
             registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
-        
-        // Listen for when the new service worker takes control
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            // Force reload the page to apply the latest version
-            window.location.reload();
-        });
     },
     onSuccess: (registration) => {
         console.log('Service worker registered successfully');
