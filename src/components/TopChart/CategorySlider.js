@@ -192,12 +192,12 @@ export default function CategorySlider({ data, getMore }) {
   const [currentSpeed, setCurrentSpeed] = useState(2000);
 
   const mockLectures = [
-    { id: 'mock-1', name: "Lecture 1 (Sunrise)", image: "/images/lectures/sunrise_lecture_1780557206616.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
-    { id: 'mock-2', name: "Lecture 2 (Clouds)", image: "/images/lectures/clouds_lecture_1780557218371.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
-    { id: 'mock-3', name: "Lecture 3 (Sunset)", image: "/images/lectures/sunset_lecture_1780557229208.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
-    { id: 'mock-4', name: "Lecture 4 (Forest)", image: "/images/lectures/nature_forest_lecture_1780557240864.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
-    { id: 'mock-5', name: "Lecture 5 (Waterfall)", image: "/images/lectures/nature_waterfall_1780557254460.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
-    { id: 'mock-6', name: "Lecture 6 (Stars)", image: "/images/lectures/nature_stars_1780557265043.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-1', name: "Lecture 1 (Sunrise)", image: "/images/lectures/sunrise_lecture_1780557206616.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/Day01/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-2', name: "Lecture 2 (Clouds)", image: "/images/lectures/clouds_lecture_1780557218371.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/Day02/02-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-3', name: "Lecture 3 (Sunset)", image: "/images/lectures/sunset_lecture_1780557229208.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/Day03/03-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-4', name: "Lecture 4 (Forest)", image: "/images/lectures/nature_forest_lecture_1780557240864.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/Day04/04-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-5', name: "Lecture 5 (Waterfall)", image: "/images/lectures/nature_waterfall_1780557254460.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/Day05/05-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-6', name: "Lecture 6 (Stars)", image: "/images/lectures/nature_stars_1780557265043.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/Day06/06-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
   ];
   const sliderItems = [...mockLectures, ...categoryStructure];
 
