@@ -61,7 +61,7 @@ export default function ListItem({ data }) {
     return (
         <Paper elevation={0} className={classes.mainContainer}>
             {isGenericImage ? (
-                <DynamicAvatar name={name} className={classes.image} isPlaying={false} />
+                <DynamicAvatar name={name} className={classes.image} />
             ) : (
                 <Image src={image}  className={classes.image} />
             )}

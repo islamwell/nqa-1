@@ -34,6 +34,12 @@ const useStyles = makeStyles((theme) => ({
       //padding: theme.spacing(1, 1, 1, 1),
     },
   },
+  playingContainer: {
+    boxShadow: "0 0 15px 3px rgba(46, 204, 113, 0.4) !important", // Elegant green glow
+    borderColor: "rgba(46, 204, 113, 0.6)",
+    transform: "scale(1.01)",
+    transition: "all 0.3s ease",
+  },
   title: {
     cursor: "pointer",
     width: "100%",
@@ -130,9 +136,9 @@ export default function ListItem({ data, currentPlayingPosition, children }) {
   const isCurrentlyPlaying = playing && id === currentPlayingId;
 
   return (
-  <Paper variant="outlined" className={classes.mainContainer}>
+  <Paper variant="outlined" className={`${classes.mainContainer} ${isCurrentlyPlaying ? classes.playingContainer : ''}`}>
       {isGenericImage ? (
-        <DynamicAvatar name={name} className={classes.image} isPlaying={isCurrentlyPlaying} />
+        <DynamicAvatar name={name} className={classes.image} />
       ) : (
         <Image src={image} className={classes.image} />
       )}
