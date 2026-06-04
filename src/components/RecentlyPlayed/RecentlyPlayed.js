@@ -23,6 +23,32 @@ const useStyles = makeStyles((theme) => ({
 
     itemContainer: {
         cursor: "pointer",
+        transition: "all 0.3s ease",
+        borderRadius: 8,
+        "&:hover": {
+            backgroundColor: fade(theme.palette.primary.main, 0.08),
+        },
+    },
+
+    playingItemContainer: {
+        cursor: "pointer",
+        backgroundColor: fade(theme.palette.primary.main, 0.15),
+        borderLeft: `4px solid ${theme.palette.primary.main}`,
+        borderRadius: 8,
+        animation: "$pulse 2s infinite",
+        transition: "all 0.3s ease",
+    },
+
+    "@keyframes pulse": {
+        "0%": {
+            boxShadow: `0 0 0 0 ${fade(theme.palette.primary.main, 0.4)}`,
+        },
+        "70%": {
+            boxShadow: `0 0 0 10px ${fade(theme.palette.primary.main, 0)}`,
+        },
+        "100%": {
+            boxShadow: `0 0 0 0 ${fade(theme.palette.primary.main, 0)}`,
+        },
     },
 
     image: {
@@ -35,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
 export default function RecentlyPlayed() {
     const classes = useStyles();
     const dispatch = useDispatch();
-    const { recentlyPlayed } = useSelector((state) => state.player);
+    const { recentlyPlayed, id: playingId } = useSelector((state) => state.player);
     const itemsPerPage = 5;
     const [page, setPage] = useState(1);
     const noOfPages = Math.max(1, Math.ceil(recentlyPlayed.length / itemsPerPage));
@@ -69,7 +95,7 @@ export default function RecentlyPlayed() {
                 .map((item, key) => (
                     <Box
                         onClick={() => handlePlay(item.name, item.link, item.id, item.image, item.categoryId)}
-                        className={classes.itemContainer}
+                        className={item.id === playingId ? classes.playingItemContainer : classes.itemContainer}
                         display="flex"
                         alignItems="center"
                         paddingTop={1}

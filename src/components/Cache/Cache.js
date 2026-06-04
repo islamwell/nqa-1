@@ -1,7 +1,7 @@
 import {React, useState} from "react";
-import { Box, IconButton } from "@material-ui/core";
+import { Box, IconButton, Paper } from "@material-ui/core";
 import Image from "../Image";
-import { makeStyles } from "@material-ui/core/styles";
+import { fade, makeStyles } from "@material-ui/core/styles";
 import { changeURL } from "../../store/slices/playerSlice";
 // import { changeCache } from "../../store/slices/playerSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,15 +15,14 @@ import { navigateToCategory } from "../../helpers/navigateToCategory";
 const useStyles = makeStyles((theme) => ({
   mainContainer: {
     borderRadius: 10,
-    maxHeight: 400,
-    overflowY: "scroll",
-
+    backgroundColor: theme.palette.background.paper,
     [theme.breakpoints.down("sm")]: {
       padding: theme.spacing(5),
     },
 
     [theme.breakpoints.up("sm")]: {
-      padding: theme.spacing(3),
+      paddingInline: theme.spacing(3),
+      paddingBlock: theme.spacing(2),
     },
   },
 
@@ -31,6 +30,11 @@ const useStyles = makeStyles((theme) => ({
     cursor: "pointer",
     display: "flex",
     width: "100%",
+    transition: "all 0.3s ease",
+    borderRadius: 8,
+    "&:hover": {
+        backgroundColor: fade(theme.palette.primary.main, 0.08),
+    },
   },
 
   image: {
@@ -68,7 +72,7 @@ const handleChange = (event, value) => {
 
 
   return (
-    <div className="favorite-container">
+    <Paper variant="outlined" className={classes.mainContainer}>
       {cachelist.length === 0 && (
                 <Box display="flex" justifyContent="center" alignItems="center" my={10}>
                     No cached...
@@ -128,7 +132,7 @@ const handleChange = (event, value) => {
           />
         </Box>
       )}
-    </div>
+    </Paper>
   );
 }
 

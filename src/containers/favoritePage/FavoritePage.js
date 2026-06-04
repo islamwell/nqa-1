@@ -20,7 +20,8 @@ function FavoritePage() {
     const classes = useStyles();
 
     return (
-        <div className="fav-redirect-container">
+        <div className="fav-redirect-container" style={{ padding: '24px' }}>
+              <Grid container spacing={4}>
                 <Grid item xs={12} md={4}>
                   <Box
                     className={classes.title}
@@ -43,14 +44,15 @@ function FavoritePage() {
                   </Box>
                   <Cache />
                 </Grid>
-                <Grid item xs={12} md={9}>
-                <Box className={classes.title} mb={3} fontSize="h4.fontSize" fontWeight="fontWeightBold">
-                  History
-                </Box>
-
-                <RecentlyPlayed />
                 </Grid>
-              </div>
+                <Grid item xs={12} md={4}>
+                  <Box className={classes.title} mb={3} fontSize="h4.fontSize" fontWeight="fontWeightBold">
+                    History
+                  </Box>
+                  <RecentlyPlayed />
+                </Grid>
+              </Grid>
+            </div>
     )
 }
 

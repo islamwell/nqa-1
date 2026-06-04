@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from "react";
 import "./Favorite.css";
-import { Box, IconButton } from "@material-ui/core";
+import { Box, IconButton, Paper } from "@material-ui/core";
 import Image from "../Image";
 import { fade, makeStyles } from "@material-ui/core/styles";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
@@ -15,14 +15,14 @@ import { navigateToCategory } from "../../helpers/navigateToCategory";
 const useStyles = makeStyles((theme) => ({
   mainContainer: {
     borderRadius: 10,
-    // maxHeight: 400,
-
+    backgroundColor: theme.palette.background.paper,
     [theme.breakpoints.down("sm")]: {
       padding: theme.spacing(5),
     },
 
     [theme.breakpoints.up("sm")]: {
-      padding: theme.spacing(3),
+      paddingInline: theme.spacing(3),
+      paddingBlock: theme.spacing(2),
     },
   },
 
@@ -30,13 +30,46 @@ const useStyles = makeStyles((theme) => ({
     cursor: "pointer",
     display: "flex",
     width: "100%",
+    transition: "all 0.3s ease",
+    borderRadius: 8,
+    "&:hover": {
+        backgroundColor: fade(theme.palette.primary.main, 0.08),
+    },
   },
 
   itemContainerCategory: {
     cursor: "pointer",
     display: "flex",
     width: "100%",
-    backgroundColor: fade(theme.palette.primary.main, 0.44),
+    backgroundColor: fade(theme.palette.primary.main, 0.2),
+    transition: "all 0.3s ease",
+    borderRadius: 8,
+    "&:hover": {
+        backgroundColor: fade(theme.palette.primary.main, 0.3),
+    },
+  },
+
+  playingItemContainer: {
+    cursor: "pointer",
+    display: "flex",
+    width: "100%",
+    backgroundColor: fade(theme.palette.primary.main, 0.15),
+    borderLeft: `4px solid ${theme.palette.primary.main}`,
+    borderRadius: 8,
+    animation: "$pulse 2s infinite",
+    transition: "all 0.3s ease",
+  },
+
+  "@keyframes pulse": {
+    "0%": {
+        boxShadow: `0 0 0 0 ${fade(theme.palette.primary.main, 0.4)}`,
+    },
+    "70%": {
+        boxShadow: `0 0 0 10px ${fade(theme.palette.primary.main, 0)}`,
+    },
+    "100%": {
+        boxShadow: `0 0 0 0 ${fade(theme.palette.primary.main, 0)}`,
+    },
   },
 
   image: {
@@ -54,6 +87,7 @@ function Favorite() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const { favorite } = useSelector((state) => state.favorite);
+  const { id: playingId } = useSelector((state) => state.player);
   const history = useHistory();
   const handlePlay = (name, link, id, image, categoryId) => {
     dispatch(
@@ -96,7 +130,7 @@ function Favorite() {
   }, [favorite.length, page, itemsPerPage]);
 
   return (
-    <div className="favorite-container">
+    <Paper variant="outlined" className={classes.mainContainer}>
       {favorite.length === 0 && (
         <Box display="flex" justifyContent="center" alignItems="center" my={10}>
           No favorite audios...
@@ -108,7 +142,7 @@ function Favorite() {
         .slice((page - 1) * itemsPerPage, page * itemsPerPage)
         .map((item, key) => (
           <Box
-            className={item.link === "category-link" ? classes.itemContainerCategory :classes.itemContainer}
+            className={item.link === "category-link" ? classes.itemContainerCategory : (item.id === playingId ? classes.playingItemContainer : classes.itemContainer)}
             display="flex"
             alignItems="center"
             paddingTop={1}
@@ -187,7 +221,7 @@ function Favorite() {
           </IconButton>
         </Box>
       )}
-    </div>
+    </Paper>
   );
 }
 

@@ -15,6 +15,7 @@ import Home from "@material-ui/icons/Home";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
+import { changeURL } from "../../store/slices/playerSlice";
 
 
 
@@ -190,6 +191,15 @@ export default function CategorySlider({ data, getMore }) {
   const [hoveredArrow, setHoveredArrow] = useState(null);
   const [currentSpeed, setCurrentSpeed] = useState(2000);
 
+  const mockLectures = [
+    { id: 'mock-1', name: "Lecture 1 (Sunrise)", image: "/images/lectures/sunrise_lecture_1780557206616.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-2', name: "Lecture 2 (Clouds)", image: "/images/lectures/clouds_lecture_1780557218371.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-3', name: "Lecture 3 (Sunset)", image: "/images/lectures/sunset_lecture_1780557229208.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-4', name: "Lecture 4 (Forest)", image: "/images/lectures/nature_forest_lecture_1780557240864.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-5', name: "Lecture 5 (Waterfall)", image: "/images/lectures/nature_waterfall_1780557254460.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+    { id: 'mock-6', name: "Lecture 6 (Stars)", image: "/images/lectures/nature_stars_1780557265043.png", isLecture: true, link: "https://nqapp.nurulquran.com/audios/Short-Series/Quran-Ki-Kirnain/01-Quran-is-my-Life-Edited-complete-Lec.mp3", categoryId: 613 },
+  ];
+  const sliderItems = [...mockLectures, ...categoryStructure];
 
   const handleManualInteraction = () => {
     if (sliderRef && sliderRef.current && sliderRef.current.slickPause) {
@@ -382,13 +392,26 @@ export default function CategorySlider({ data, getMore }) {
 
           <Slider ref={sliderRef} {...settings}>
           {
-            categoryStructure.map((item) => (
+            sliderItems.map((item) => (
               <div className={classes.item} key={item.id}>
                 <Box>
                   <Image 
                     onClick={(e) => {
                       e.stopPropagation();
                       if (draggingRef.current) return;
+
+                      if (item.isLecture) {
+                        dispatch(changeURL({
+                          name: item.name,
+                          link: item.link,
+                          id: item.id,
+                          image: item.image,
+                          categoryId: item.categoryId,
+                          currentPlayingPosition: "home"
+                        }));
+                        return;
+                      }
+
                       dispatch(
                         changeSubCatsVisible({
                           subCatsVisible: true
