@@ -138,7 +138,7 @@ export default function Search() {
   }, [categorySearchCurrentPage, showCategoryPagination, changeCategorySearchPage, categorySearchTotalPages]);
 
   return (
-    <div style={playing ? { paddingBottom: 150 } : { paddingBottom: 50 }} className={classes.root}>
+    <div className={classes.root}>
       <Container maxWidth="md">
         <Grid container spacing={3}>
           <Grid item xs={12}>
