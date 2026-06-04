@@ -13,6 +13,7 @@ import { Button, Menu, MenuItem, Paper } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
 import { downloadAudioList, updateOfflineStatus } from "../../store/slices/downloadSlice";
 import ArchiveIcon from "@material-ui/icons/Archive";
+import PaletteIcon from "@material-ui/icons/Palette";
 import { version } from "../../data/config";
 import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
 const useStyles = makeStyles((theme) => ({
@@ -374,7 +375,9 @@ export default function PrimarySearchAppBar() {
                 history.push("/playlist")
                 handleClose()
               }} button={true}> Playlist </MenuItem>
-              <MenuItem onClick={handleVersionClick} button={true}>v{version}</MenuItem>
+              <MenuItem onClick={handleVersionClick} button={true}>
+                v{version} <PaletteIcon style={{ fontSize: 16, marginLeft: 8 }} />
+              </MenuItem>
               <MenuItem onClick={() => {
                 handleClose();
                 dispatch(downloadAudioList());
