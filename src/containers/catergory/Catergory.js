@@ -4,7 +4,7 @@ import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import Pagination from "@material-ui/lab/Pagination";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import "swiper/components/pagination/pagination.min.css";
@@ -76,13 +76,21 @@ export default function Home() {
     const classes = useStyles();
     const params = useParams();
     const theme = useTheme();
-    const [categoryDetails, setCategoryDetails] = useState(null);
-    const categoryId = categoryDetails?.id;
-
     const categoryName = params.category ? decodeURIComponent(params.category) : undefined;
     const subCategoryOneName = normalizeSubCategoryName(params.subCategoryOne);
     const subCategoryTwoName = normalizeSubCategoryName(params.subCategoryTwo);
     const subCategoryThreeName = normalizeSubCategoryName(params.subCategoryThree);
+
+    const categoryDetails = useMemo(() => {
+        let details = getCategoryByNameAndSubCategoryNames(categoryName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+        if (!details && typeof categoryName === 'string') {
+            const fallbackName = categoryName.replace(/-/g, ' ');
+            details = getCategoryByNameAndSubCategoryNames(fallbackName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+        }
+        return details;
+    }, [categoryName, subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+
+    const categoryId = categoryDetails?.id;
 
     const { offlineMode } = useSelector((state) => state.download);
     const { playing } = useSelector((state) => state.player);
@@ -99,14 +107,7 @@ export default function Home() {
         changePage(page);
     };
 
-    useEffect(() => {
-        let details = getCategoryByNameAndSubCategoryNames(categoryName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
-        if (!details && typeof categoryName === 'string') {
-            const fallbackName = categoryName.replace(/-/g, ' ');
-            details = getCategoryByNameAndSubCategoryNames(fallbackName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
-        }
-        setCategoryDetails(details);
-    }, [categoryName, subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+    // categoryDetails is now computed synchronously via useMemo
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;
 

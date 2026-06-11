@@ -25,7 +25,7 @@ self.addEventListener('install', (event) => {
 
 setCacheNameDetails({
     prefix: "nurulquran",
-    suffix: "3.64",
+    suffix: "3.73",
     precache: "nurulquran-precache",
     runtime: "nurulquran-runtime",
 });

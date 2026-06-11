@@ -195,7 +195,7 @@ export const useData = (props = {}) => {
         } else {
             getAudioListOffline();
         }
-    }, [currentPage, searchText, categoryId, offlineMode]);
+    }, [currentPage, searchText, categoryId, offlineMode, shouldSearch]);
 
     useEffect(() => {
         const getCategoryList = async () => {
