@@ -38,8 +38,28 @@ export const addAudio = async (data) => {
     return db.table("audioList").bulkPut(data);
 };
 
+import { audioIndex, categoryIndex } from "../services/algolia";
+
 export const getAudioByName = async (searchText, page) => {
     const HARD_LIMIT = 10000;
+    
+    // Try Algolia first if online
+    if (navigator.onLine) {
+        try {
+            const res = await audioIndex.search(searchText, {
+                page: page - 1,
+                hitsPerPage: pageSize
+            });
+            const mapped = res.hits.map(hit => ({
+                ...hit,
+                highlightName: hit._highlightResult?.name?.value || hit.name
+            }));
+            return { data: mapped, allpage: res.nbPages || 1 };
+        } catch (error) {
+            console.error("Algolia audio search failed, falling back to local DB", error);
+        }
+    }
+
     // https://github.com/dfahlander/Dexie.js/issues/838
     try {
         const allItems = await db.table("audioList").limit(HARD_LIMIT).toArray();
@@ -187,7 +207,24 @@ export const getCategoryById = (id) => {
     return recursivSearchById(categories, id);
 };
 
-export const getCategoryByName = (searchText, page) => {
+export const getCategoryByName = async (searchText, page) => {
+    // Try Algolia first if online
+    if (navigator.onLine) {
+        try {
+            const res = await categoryIndex.search(searchText, {
+                page: page - 1,
+                hitsPerPage: pageSize
+            });
+            const mapped = res.hits.map(hit => ({
+                ...hit,
+                highlightName: hit._highlightResult?.name?.value || hit.name
+            }));
+            return { data: mapped, allpage: res.nbPages || 1 };
+        } catch (error) {
+            console.error("Algolia category search failed, falling back to local search", error);
+        }
+    }
+
     const filtered = recursivSearchByName(categories, searchText);
 
     const start = (page - 1) * pageSize;

@@ -199,7 +199,7 @@ export const useData = (props = {}) => {
 
     useEffect(() => {
         const getCategoryList = async () => {
-            const res = offlineAPI.getCategoryByName(searchText, categorySearchCurrentPage);
+            const res = await offlineAPI.getCategoryByName(searchText, categorySearchCurrentPage);
             setCategoryList(prev => categorySearchCurrentPage === 1 ? res.data : [...prev, ...res.data]);
             setCategorySearchTotalPages(res.allpage);
         };
