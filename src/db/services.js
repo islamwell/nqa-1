@@ -1,6 +1,7 @@
 import db from "./db";
 import categories from "../data/category-strcture";
 import fuzzysort from "fuzzysort";
+import { audioIndex, categoryIndex } from "../services/algolia";
 
 const synonymGroups = [
     ["quran", "koran"],
@@ -37,8 +38,6 @@ const pageSize = 10;
 export const addAudio = async (data) => {
     return db.table("audioList").bulkPut(data);
 };
-
-import { audioIndex, categoryIndex } from "../services/algolia";
 
 export const getAudioByName = async (searchText, page) => {
     const HARD_LIMIT = 10000;
