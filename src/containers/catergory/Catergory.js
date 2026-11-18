@@ -1,9 +1,8 @@
-import { Box, Container, IconButton, useMediaQuery, useTheme } from "@material-ui/core";
+import { Box, Container, IconButton } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
-import Pagination from "@material-ui/lab/Pagination";
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -75,38 +74,49 @@ const normalizeSubCategoryName = (name) => {
 export default function Home() {
     const classes = useStyles();
     const params = useParams();
-    const theme = useTheme();
     const [categoryDetails, setCategoryDetails] = useState(null);
     const categoryId = categoryDetails?.id;
 
-    const categoryName = params.category ? decodeURIComponent(params.category) : undefined;
-    const subCategoryOneName = normalizeSubCategoryName(params.subCategoryOne);
-    const subCategoryTwoName = normalizeSubCategoryName(params.subCategoryTwo);
-    const subCategoryThreeName = normalizeSubCategoryName(params.subCategoryThree);
+    let categoryName = undefined;
+    if (params.category) {
+        try {
+            categoryName = decodeURIComponent(params.category);
+        } catch (_) {
+            categoryName = params.category;
+        }
+    }
+
+    const subCategoryNames = [
+        params.subCategoryOne,
+        params.subCategoryTwo,
+        params.subCategoryThree,
+        params.subCategoryFour,
+        params.subCategoryFive,
+    ]
+        .filter(Boolean)
+        .map(normalizeSubCategoryName);
+
+    const subCategoryNamesKey = JSON.stringify(subCategoryNames);
 
     const { offlineMode } = useSelector((state) => state.download);
     const { playing } = useSelector((state) => state.player);
-
-    const matches = useMediaQuery(theme.breakpoints.down("xs"));
 
     const { loading, totalPages, currentPage, audioList, changePage } = useData({
         offlineMode,
         categoryId,
         shouldSearch: !!categoryDetails,
+        append: true,
     });
 
-    const handleChangePage = (_, page) => {
-        changePage(page);
-    };
-
     useEffect(() => {
-        let details = getCategoryByNameAndSubCategoryNames(categoryName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+        let details = getCategoryByNameAndSubCategoryNames(categoryName, subCategoryNames);
         if (!details && typeof categoryName === 'string') {
             const fallbackName = categoryName.replace(/-/g, ' ');
-            details = getCategoryByNameAndSubCategoryNames(fallbackName, [subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+            details = getCategoryByNameAndSubCategoryNames(fallbackName, subCategoryNames);
         }
         setCategoryDetails(details);
-    }, [categoryName, subCategoryOneName, subCategoryTwoName, subCategoryThreeName]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [categoryName, subCategoryNamesKey]);
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;
 
@@ -122,32 +132,30 @@ export default function Home() {
         return () => observer.disconnect();
     }, [currentPage, showPagination, changePage, totalPages]);
 
-
-
     const dispatch = useDispatch();
-    const { favorite } = useSelector((state) => state.favorite);
+    const { favorite = [] } = useSelector((state) => state.favorite || {});
     const [present, setPresent] = useState(false);
 
-    function handleFavorite(){
-        // present?setPresent(false):setPresent(true);
-        // console.log("this is the category data***********:",categoryDetails)
-            dispatch(
-                changeFav({
-                  name: categoryDetails.name,
-                  link: "category-link",
-                  id: categoryDetails.id,
-                  image: categoryDetails.image,
-                  categoryId: categoryDetails.id,
-                })
-        )
+    function handleFavorite() {
+        if (!categoryDetails) return;
+        dispatch(
+            changeFav({
+                name: categoryDetails.name,
+                link: "category-link",
+                id: categoryDetails.id,
+                image: categoryDetails.image,
+                categoryId: categoryDetails.id,
+            })
+        );
     }
+
     useEffect(() => {
-        if (favorite.find((item) => item.id === categoryDetails?.id)) {
+        if (categoryDetails && favorite.some((item) => String(item.id) === String(categoryDetails.id))) {
             setPresent(true);
-          } else {
+        } else {
             setPresent(false);
-          }
-      }, [audioList, favorite,categoryDetails]);
+        }
+    }, [favorite, categoryDetails]);
 
     return (
         <div style={playing ? { paddingBottom: 150 } : { paddingBottom: 50 }} className={classes.root}>

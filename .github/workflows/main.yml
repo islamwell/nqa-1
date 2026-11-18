@@ -28,4 +28,4 @@ jobs:
           author_name: islamwell
           author_email: it@nrq.no
           message: 'download latest categories'
-          add: './src/data/category-strcture.json"'
+          add: './src/data/category-strcture.json'

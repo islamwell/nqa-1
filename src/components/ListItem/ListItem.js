@@ -6,8 +6,6 @@ import { changeURL } from "../../store/slices/playerSlice";
 import PauseCircleOutlineRoundedIcon from "@material-ui/icons/PauseCircleOutlineRounded";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import parse from "html-react-parser";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 import { ActionList, Image, DynamicAvatar } from "../../components";
 const useStyles = makeStyles((theme) => ({
@@ -183,7 +181,6 @@ export default function ListItem({ data, currentPlayingPosition, children }) {
 
         <ActionList data={data} currentPlayingPosition={currentPlayingPosition} children={children} />
       </Box>
-      <ToastContainer autoClose={1000} className="notification-container-copied" />
     </Paper>
   );
 }

@@ -36,7 +36,7 @@ export default function MobileDropdownMenu({ open, onSelect }) {
 
     const rederCategories = useCallback((categories) => {
         return categories.map((category, key) => {
-            if (category.subCategories) {
+            if (category.subCategories && category.subCategories.length > 0) {
                 return (
                     <SubMenu key={key} label={category.name}>
                         {rederCategories(category.subCategories)}

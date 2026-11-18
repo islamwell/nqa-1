@@ -61,8 +61,8 @@ export default function ListItem() {
                 onClose={handleClose}
                 getContentAnchorEl={null}
             >
-                {downloadingQueue.map((item, key) => (
-                    <MenuItem key={key} style={{ padding: 0 }} button={false}>
+                {downloadingQueue.map((item) => (
+                    <MenuItem key={item.id} style={{ padding: 0 }} button={false}>
                         <DownalodNotificationItem link={item.link} id={item.id} />
                     </MenuItem>
                 ))}

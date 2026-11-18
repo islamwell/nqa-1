@@ -4,7 +4,6 @@ import "./index.css";
 import App from "./App";
 import { Provider } from "react-redux";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import { toast } from "react-toastify";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
 
@@ -19,12 +18,12 @@ ReactDOM.render(
     document.getElementById("root")
 );
 
-// Global listener to ensure the page reloads as soon as the new service worker takes over,
-// even if it happens before the onUpdate callback runs.
+// Reload only when an existing service worker is replaced by a new one (not on first-time install)
 let refreshing = false;
 if ("serviceWorker" in navigator) {
+    const hadController = Boolean(navigator.serviceWorker.controller);
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (!refreshing) {
+        if (hadController && !refreshing) {
             refreshing = true;
             window.location.reload();
         }

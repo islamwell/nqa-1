@@ -1,15 +1,13 @@
-import {React, useState} from "react";
+import React, { useState } from "react";
 import { Box, IconButton, Paper } from "@material-ui/core";
 import Image from "../Image";
 import { fade, makeStyles } from "@material-ui/core/styles";
 import { changeURL } from "../../store/slices/playerSlice";
-// import { changeCache } from "../../store/slices/playerSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import { changeCache } from "../../store/slices/downloadSlice";
 import Pagination from '@material-ui/lab/Pagination';
-import { getSubCategoryIds, getSubCategoryNamesByIds } from "../../db/services";
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 
 const useStyles = makeStyles((theme) => ({
@@ -52,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
 function Cache() {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { cachelist } = useSelector((state) => state.download);
+  const { cachelist = [] } = useSelector((state) => state.download || {});
   const history = useHistory();
   const handlePlay = (name, link, id, image, categoryId) => {
     dispatch(changeURL({ name, link, id, image, categoryId,currentPlayingPosition: "home" }));
@@ -61,10 +59,10 @@ function Cache() {
     dispatch(changeCache({ name, link, id, image, categoryId,currentPlayingPosition: "home" }));
 };
 
-const showPagination = (cachelist.length > 0);
 const itemsPerPage = 10;
 const [page, setPage] = useState(1);
-const [noOfPages] = useState(Math.ceil(cachelist.length / itemsPerPage));
+const noOfPages = Math.max(1, Math.ceil(cachelist.length / itemsPerPage));
+const showPagination = noOfPages > 1;
 
 const handleChange = (event, value) => {
   setPage(value);
@@ -79,8 +77,9 @@ const handleChange = (event, value) => {
                 </Box>
             )}
       {cachelist
-      .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+      .slice()
       .reverse()
+      .slice((page - 1) * itemsPerPage, page * itemsPerPage)
       .map((item, key) => (
         <Box
           className={classes.itemContainer}

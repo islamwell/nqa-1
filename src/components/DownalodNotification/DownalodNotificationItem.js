@@ -26,7 +26,7 @@ export default function DownalodNotificationItem({ id, link }) {
     const promiseRef = useRef(null);
     const downloadingItem = useSelector((state) => selectDownloadingItem(state, id));
     const handleCancelDownload = () => {
-        promiseRef.current.abort();
+        promiseRef.current?.abort();
     };
 
     useEffect(() => {

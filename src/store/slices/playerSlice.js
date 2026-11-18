@@ -53,32 +53,39 @@ export const playerSlice = createSlice({
         },
         playNextOrPrevious: (state, action) => {
             let selectedList = [];
+
+            if (["home", "category", "search", "playlist"].includes(state.currentPlayingPosition)) {
+                selectedList = current(state).currentAudioList || [];
+            } else if (state.currentPlayingPosition === "recentlyPlayed") {
+                selectedList = current(state).recentlyPlayed || [];
+            } else if (state.currentPlayingPosition === "topChart") {
+                selectedList = current(state).topChart || [];
+            } else {
+                selectedList = current(state).currentAudioList || [];
+            }
+
+            if (!selectedList || selectedList.length === 0) return;
+
+            const currentArrayIndex = selectedList.findIndex((item) => String(item.id) === String(current(state).id));
             let newArrayIndex = 0;
 
-            if (state.currentPlayingPosition === "home" || "category" || "search" || "playlist") {
-                selectedList = current(state).currentAudioList;
+            if (currentArrayIndex === -1) {
+                newArrayIndex = action.payload === "previous" ? selectedList.length - 1 : 0;
+            } else {
+                if (action.payload === "next") newArrayIndex = currentArrayIndex + 1;
+                if (action.payload === "previous") newArrayIndex = currentArrayIndex - 1;
             }
 
-            if (state.currentPlayingPosition === "recentlyPlayed") {
-                selectedList = current(state).recentlyPlayed;
-            }
-
-            if (state.currentPlayingPosition === "topChart") {
-                selectedList = current(state).topChart;
-            }
-
-            const currentArrayIndex = selectedList.findIndex((item) => item.id === current(state).id);
-
-            if (action.payload === "next") newArrayIndex = currentArrayIndex + 1;
-            if (action.payload === "previous") newArrayIndex = currentArrayIndex - 1;
-
-            if (newArrayIndex < 0) newArrayIndex = 0;
+            if (newArrayIndex < 0) newArrayIndex = selectedList.length - 1;
             if (newArrayIndex >= selectedList.length) newArrayIndex = 0;
+
             const audio = selectedList[newArrayIndex];
-            state.link = audio?.link;
-            state.name = audio?.name;
-            state.id = audio?.id;
-            state.categoryId = audio?.categoryId || audio?.category_id;
+            if (audio) {
+                state.link = audio.link;
+                state.name = audio.name;
+                state.id = audio.id;
+                state.categoryId = audio.categoryId || audio.category_id;
+            }
         },
         changeURL: (state, action) => {
             state.link = action.payload.link;
@@ -89,27 +96,23 @@ export const playerSlice = createSlice({
             state.minimized = false;
             state.currentPlayingPosition = action.payload.currentPlayingPosition;
 
-            if (state.recentlyPlayed.find((item) => item.id === action.payload.id)) return;
+            // Remove if already in recentlyPlayed so it moves to the end (most recent)
+            state.recentlyPlayed = state.recentlyPlayed.filter(
+                (item) => String(item.id) !== String(action.payload.id)
+            );
 
-            //check the limit of the recently played
-            if (state.recentlyPlayed.length === 40) {
-                state.recentlyPlayed.splice(0, 1);
-                state.recentlyPlayed.push({
-                    link: action.payload.link,
-                    name: action.payload.name,
-                    id: action.payload.id,
-                    image: action.payload.image,
-                    categoryId: action.payload.categoryId,
-                });
-            } else {
-                state.recentlyPlayed.push({
-                    link: action.payload.link,
-                    name: action.payload.name,
-                    id: action.payload.id,
-                    image: action.payload.image,
-                    categoryId: action.payload.categoryId,
-                });
+            // Limit recently played to 40 items
+            if (state.recentlyPlayed.length >= 40) {
+                state.recentlyPlayed.splice(0, state.recentlyPlayed.length - 39);
             }
+
+            state.recentlyPlayed.push({
+                link: action.payload.link,
+                name: action.payload.name,
+                id: action.payload.id,
+                image: action.payload.image,
+                categoryId: action.payload.categoryId,
+            });
         },
     },
 

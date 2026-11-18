@@ -2,20 +2,15 @@ import { Avatar, Box, Button, Container, IconButton, TextField, useMediaQuery, u
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
-import CreateIcon from '@material-ui/icons/Create';
-import ShuffleIcon from '@material-ui/icons/Shuffle';
+import CreateIcon from "@material-ui/icons/Create";
+import ShuffleIcon from "@material-ui/icons/Shuffle";
 import Pagination from "@material-ui/lab/Pagination";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory, useLocation, useParams } from "react-router-dom";
-import "swiper/components/pagination/pagination.min.css";
-import "swiper/swiper.min.css";
-import { Image, ListItem } from "../../components";
-import { getCategoryByNameAndSubCategoryNames } from "../../db/services";
-import { useData } from "../../hooks/useData";
-import { changeFav } from "../../store/slices/favoriteSlice";
+import { useHistory, useLocation } from "react-router-dom";
+import { ListItem } from "../../components";
 import { toast } from "react-toastify";
-import CloseRounded from '@material-ui/icons/CloseRounded';
+import CloseRounded from "@material-ui/icons/CloseRounded";
 import { updateCurrentAudioList } from "../../store/slices/playerSlice";
 import { nameFormat } from "../../utils";
 
@@ -30,18 +25,7 @@ const useStyles = makeStyles((theme) => ({
     avatar: {
         height: 150,
         width: 150,
-        background: `radial-gradient(circle at 50% 50%, #000000 0%, #10373C 12%, #005EFF 48%, #D4E3F7 74%, #FFFFFF 100%)`
-
-    },
-
-    image: {
-        width: "70%",
-        borderRadius: 1000,
-
-        [theme.breakpoints.down("sm")]: {
-            width: 100,
-            marginRight: theme.spacing(5),
-        },
+        background: `radial-gradient(circle at 50% 50%, #000000 0%, #10373C 12%, #005EFF 48%, #D4E3F7 74%, #FFFFFF 100%)`,
     },
 
     categoryContainer: {
@@ -62,114 +46,127 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const normalizeCategoryName = (name) => {
-    return name?.replace(/-/g, ' ').replace('%26', '&').replace('%2B', '+');
-};
-
 export default function PlaylistDetail() {
     const classes = useStyles();
-    const params = useParams();
     const history = useHistory();
-    const { state: {item, index} } = useLocation();
-    const [playlistItems, setPlaylistItems] = useState(item[Object.keys(item)] ?? [])
-    const [playlistName, setPlaylistName] = useState(Object.keys(item))
-    const [editable, setEditable] = useState(false)
+    const location = useLocation();
+    const dispatch = useDispatch();
     const theme = useTheme();
-    const [categoryDetails, setCategoryDetails] = useState(null);
-    const categoryId = categoryDetails?.id;
-
-    useEffect(() => {
-        let localData = JSON.parse(localStorage.getItem('playlist'));
-        localData[index] = {[playlistName]: playlistItems}
-        localStorage.setItem('playlist', JSON.stringify(localData))
-    }, [playlistItems, index])
-
-
-    const { offlineMode } = useSelector((state) => state.download);
+    const matches = useMediaQuery(theme.breakpoints.down("xs"));
     const { playing } = useSelector((state) => state.player);
 
-    const matches = useMediaQuery(theme.breakpoints.down("xs"));
+    const locationState = location?.state;
 
-    const { loading, totalPages, currentPage, audioList, changePage } = useData({
-        offlineMode,
-        categoryId,
-        shouldSearch: !!categoryDetails,
-    });
-
-    const dispatch = useDispatch()
-
-    useEffect(() => {
-        dispatch(updateCurrentAudioList(playlistItems))
-    }, [playlistItems])
-
-    const handleChangePage = (_, page) => {
-        changePage(page);
+    // Helper functions for localStorage
+    const getPlaylists = () => {
+        try {
+            return JSON.parse(localStorage.getItem("playlist")) || [];
+        } catch (_) {
+            return [];
+        }
     };
 
-    const handleRemove = (index) => {
-        const localData = JSON.parse(localStorage.getItem('playlist'))
-        const currentIndex = localData.findIndex(item => item[Object.keys(item)]);
-        const updatedArray = playlistItems.filter(play => play.id !== playlistItems[index].id)
-        localData[currentIndex] = {[playlistName]: updatedArray}
-        localStorage.setItem('playlist', JSON.stringify(localData))
-        setPlaylistItems(updatedArray);
-        toast('Audio removed...')
-    }
+    const savePlaylists = (lists) => {
+        localStorage.setItem("playlist", JSON.stringify(lists));
+    };
 
-    const showPagination = !loading && audioList.length > 0 && totalPages > 1;
+    const rawItem = locationState?.item;
+    const initialIndex = locationState?.index ?? 0;
+    const initialKey = rawItem ? Object.keys(rawItem)[0] : "";
+
+    const [playlistName, setPlaylistName] = useState(initialKey);
+    const [playlistItems, setPlaylistItems] = useState(rawItem && initialKey ? rawItem[initialKey] || [] : []);
+    const [currentIndex, setCurrentIndex] = useState(initialIndex);
+    const [editable, setEditable] = useState(false);
+
+    const [page, setPage] = useState(1);
+    const itemsPerPage = 10;
+    const totalPages = Math.max(1, Math.ceil(playlistItems.length / itemsPerPage));
+    const showPagination = totalPages > 1;
+
+    // Fallback if accessed directly or refreshed
+    useEffect(() => {
+        if (!locationState || !locationState.item) {
+            const stored = getPlaylists();
+            if (stored.length > 0 && stored[0]) {
+                const firstKey = Object.keys(stored[0])[0];
+                setPlaylistName(firstKey);
+                setPlaylistItems(stored[0][firstKey] || []);
+                setCurrentIndex(0);
+            } else {
+                history.replace("/playlist");
+            }
+        }
+    }, [locationState, history]);
 
     useEffect(() => {
-        window?.scrollTo({
-            top: 0,
-            behavior: "smooth",
-        });
-    }, [currentPage]);
+        dispatch(updateCurrentAudioList(playlistItems));
+    }, [playlistItems, dispatch]);
+
+    const handleRemove = (trackId) => {
+        const localData = getPlaylists();
+        const updatedArray = playlistItems.filter((play) => play.id !== trackId);
+        if (localData[currentIndex]) {
+            localData[currentIndex] = { [playlistName]: updatedArray };
+            savePlaylists(localData);
+        }
+        setPlaylistItems(updatedArray);
+        toast.info("Audio removed from playlist");
+    };
 
     function handleEdit() {
-        setEditable(pre => !pre)
+        setEditable((pre) => !pre);
     }
-    
-    function handleSave () {
-        if (playlistName.length > 0) {
-            const localData = JSON.parse(localStorage.getItem('playlist'))
-            if (!!localData.find(audio => audio[playlistName])) {
-                toast('Name already exists!')
-            } else {
-                localData[index] = {[playlistName]: playlistItems}
-                localStorage.setItem('playlist', JSON.stringify(localData))
-                toast('Playlist updated')
-                handleEdit();
-            }
 
-        } else {
-            toast('Playlist must need a name')
+    function handleSave() {
+        const trimmed = String(playlistName).trim();
+        if (!trimmed) {
+            toast.error("Playlist must have a name");
+            return;
         }
+
+        const localData = getPlaylists();
+        const conflictIndex = localData.findIndex(
+            (p, idx) => Object.keys(p)[0] === trimmed && idx !== currentIndex
+        );
+
+        if (conflictIndex !== -1) {
+            toast.error("A playlist with this name already exists!");
+            return;
+        }
+
+        localData[currentIndex] = { [trimmed]: playlistItems };
+        savePlaylists(localData);
+        setPlaylistName(trimmed);
+        toast.success("Playlist updated");
+        setEditable(false);
     }
 
-    function handleDelete () {
-        const localData = JSON.parse(localStorage.getItem('playlist'))
-        localData.splice(index, 1);
-        localStorage.setItem('playlist', JSON.stringify(localData))
-        toast('Playlist deleted')
-        history.goBack()
+    function handleDelete() {
+        const localData = getPlaylists();
+        localData.splice(currentIndex, 1);
+        savePlaylists(localData);
+        toast.info("Playlist deleted");
+        history.replace("/playlist");
     }
 
     function handleShuffle(array = []) {
-        var currentIndex = array?.length, randomIndex;
-        // While there remain elements to shuffle.
-        
-        while (currentIndex !== 0) {
-            // Pick a remaining element.
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            
-            // And swap it with the current element.
-            // eslint-disable-next-line no-sequences
-            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        const arr = [...array];
+        let cur = arr.length;
+        while (cur !== 0) {
+            const rand = Math.floor(Math.random() * cur);
+            cur--;
+            [arr[cur], arr[rand]] = [arr[rand], arr[cur]];
         }
-        
-        setPlaylistItems(array)
+        setPlaylistItems(arr);
     }
+
+    const handleChangePage = (_, newPage) => {
+        setPage(newPage);
+        window?.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const paginatedItems = playlistItems.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
     return (
         <div style={playing ? { paddingBottom: 150 } : { paddingBottom: 50 }} className={classes.root}>
@@ -177,56 +174,74 @@ export default function PlaylistDetail() {
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
                         <Paper variant="outlined" className={classes.categoryContainer}>
-                            {/* <Image className={classes.image} src={categoryDetails?.image} alt="cover_image" /> */}
                             <Avatar className={classes.avatar}>{nameFormat(String(playlistName))}</Avatar>
-                            {!editable ? 
-                            <Box
-                                textAlign="center"
-                                className={classes.title}
-                                my={3}
-                                fontSize="h6.fontSize"
-                                fontWeight="fontWeightBold"
-                            >
-                                {playlistName}
-                            </Box> : 
-                            <TextField value={playlistName} onKeyDown={e => e.key === "Enter" && handleSave() } label={'Playlist Name'} onChange={(e) => setPlaylistName(e.target.value)} />}
-                            
-                            {editable ? 
-                            <Box>
-                            <Button onClick={handleSave} color="primary">Save</Button>
-                            <Button onClick={handleDelete} color="secondary">Delete</Button>
+                            {!editable ? (
+                                <Box
+                                    textAlign="center"
+                                    className={classes.title}
+                                    my={3}
+                                    fontSize="h6.fontSize"
+                                    fontWeight="fontWeightBold"
+                                >
+                                    {playlistName}
+                                </Box>
+                            ) : (
+                                <TextField
+                                    value={playlistName}
+                                    onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                                    label="Playlist Name"
+                                    onChange={(e) => setPlaylistName(e.target.value)}
+                                    autoFocus
+                                    margin="normal"
+                                />
+                            )}
 
-                            </Box>
-                            : 
-                            <Box display={'flex'}>
-                            <IconButton onClick={handleEdit} size="small">
-                                <CreateIcon />
-                            </IconButton>
-                            <IconButton onClick={() => handleShuffle([...playlistItems])} size="small">
-                                <ShuffleIcon />
-                            </IconButton>
-                            </Box>
-                            }
+                            {editable ? (
+                                <Box mt={1}>
+                                    <Button onClick={handleSave} color="primary" variant="contained" size="small" style={{ marginRight: 8 }}>
+                                        Save
+                                    </Button>
+                                    <Button onClick={handleDelete} color="secondary" variant="outlined" size="small">
+                                        Delete
+                                    </Button>
+                                </Box>
+                            ) : (
+                                <Box display="flex" mt={1}>
+                                    <IconButton onClick={handleEdit} size="small" aria-label="edit playlist">
+                                        <CreateIcon />
+                                    </IconButton>
+                                    <IconButton onClick={() => handleShuffle(playlistItems)} size="small" aria-label="shuffle playlist">
+                                        <ShuffleIcon />
+                                    </IconButton>
+                                </Box>
+                            )}
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={8}>
-                        {playlistItems.map((item, key) => {
-                            return (
-                                <ListItem currentPlayingPosition="playlist" key={item.id} data={item} 
+                        {paginatedItems.map((item) => (
+                            <ListItem
+                                currentPlayingPosition="playlist"
+                                key={item.id}
+                                data={item}
                                 children={
-                                        <Button variant="contained" onClick={(e) => handleRemove(key)} color="secondary">
-                                            <CloseRounded/>
-                                        </Button>
-                                }/>                             
-                            )
-                        })}
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => handleRemove(item.id)}
+                                        color="secondary"
+                                        size="small"
+                                    >
+                                        <CloseRounded />
+                                    </Button>
+                                }
+                            />
+                        ))}
 
                         {showPagination && (
                             <Box py={2} display="flex" justifyContent="flex-end">
                                 <Pagination
                                     onChange={handleChangePage}
                                     size={matches ? "small" : "large"}
-                                    page={currentPage}
+                                    page={page}
                                     count={totalPages}
                                     variant="outlined"
                                     shape="rounded"

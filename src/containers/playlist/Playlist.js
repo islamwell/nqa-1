@@ -30,10 +30,12 @@ export default function Playlist() {
     const [data, setData] = useState([]);
 
     useEffect(() => {
-        const payloads = JSON.parse(localStorage.getItem('playlist'));
-        if (payloads && payloads?.length > 0) {
-            setData(payloads)
-        }
+        try {
+            const payloads = JSON.parse(localStorage.getItem('playlist'));
+            if (payloads && payloads?.length > 0) {
+                setData(payloads);
+            }
+        } catch (_) {}
     }, []);
 
     return (

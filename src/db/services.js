@@ -10,26 +10,36 @@ const synonymGroups = [
     ["namaz", "salah", "salat"],
 ];
 
-const buildSearchRegex = (searchText) => {
+export const escapeRegex = (str) => String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export const buildSearchRegex = (searchText) => {
     if (!searchText) return null;
     if (searchText.startsWith('"')) {
         const cleaned = searchText.replace(/"/g, "");
-        return new RegExp(cleaned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        try {
+            return new RegExp(escapeRegex(cleaned), 'i');
+        } catch (_) {
+            return null;
+        }
     }
     const words = searchText.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (words.length === 0) return null;
 
-    const regexParts = words.map(word => {
-        let variants = [word];
-        for (const group of synonymGroups) {
-            if (group.includes(word)) {
-                variants = group;
-                break;
+    try {
+        const regexParts = words.map(word => {
+            let variants = [escapeRegex(word)];
+            for (const group of synonymGroups) {
+                if (group.includes(word)) {
+                    variants = group.map(escapeRegex);
+                    break;
+                }
             }
-        }
-        return `(?=.*\\b(?:${variants.join('|')}))`;
-    });
-    return new RegExp(`^${regexParts.join('')}.*`, 'i');
+            return `(?=.*\\b(?:${variants.join('|')}))`;
+        });
+        return new RegExp(`^${regexParts.join('')}.*`, 'i');
+    } catch (_) {
+        return null;
+    }
 };
 
 const pageSize = 10;
@@ -81,29 +91,29 @@ export const getAudioById = async (id) => {
     return db.table("audioList").get({ id: id.toString() });
 };
 
-export const getAudioByCategory = async (categoryId, page) => {
-    const HARD_LIMIT = 10000;
-    // https://github.com/dfahlander/Dexie.js/issues/838
+export const getAudioByCategory = async (categoryId, page = 1) => {
     try {
-        const allItems = await db.table("audioList").limit(HARD_LIMIT).toArray();
-        let filtered = allItems.filter((item) => {
-            return String(item.category_id) === String(categoryId);
-        });
-        if (allItems.length === HARD_LIMIT) {
-            // We didn't get all data in first try.
-            // Need to continue filtering one by one:
-            const rest = await db
+        const strId = String(categoryId);
+        const numId = Number(categoryId);
+
+        let items = [];
+        try {
+            items = await db
                 .table("audioList")
-                .offset(HARD_LIMIT)
-                .filter((item) => String(item.category_id) === String(categoryId))
+                .where("category_id")
+                .equals(numId)
+                .or("category_id")
+                .equals(strId)
                 .toArray();
-            filtered = filtered.concat(rest);
+        } catch (_) {
+            const allItems = await db.table("audioList").limit(5000).toArray();
+            items = allItems.filter((item) => String(item.category_id) === strId);
         }
 
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    const data = filtered.slice(start, end);
-    const allpage = Math.ceil(filtered.length / pageSize);
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        const data = items.slice(start, end);
+        const allpage = Math.max(1, Math.ceil(items.length / pageSize));
 
         return { data, allpage };
     } catch (error) {
@@ -202,43 +212,27 @@ export const getCategoryByExactName = (searchText) => {
     return recursiveSearchByExactName(categories, searchText)[0];
 };
 
-export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames) => {
-    const [subCategoryOneName, subCategoryTwoName, subCategoryThreeName] = subCategoryNames;
+export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames = []) => {
+    if (!name) return undefined;
     const category = getCategoryByExactName(name);
+    if (!category) return undefined;
 
-    if (!category?.subCategories?.length) {
+    if (!Array.isArray(subCategoryNames) || subCategoryNames.length === 0) {
         return category;
     }
 
-    const subCategoryOne = findSubCategoryByName(category?.subCategories, subCategoryOneName);
-
-    if (!subCategoryOne?.subCategories?.length) {
-        if (subCategoryOne) {
-            return subCategoryOne;
+    let currentCategory = category;
+    for (const subName of subCategoryNames) {
+        if (!subName || !currentCategory?.subCategories?.length) break;
+        const found = findSubCategoryByName(currentCategory.subCategories, subName);
+        if (found) {
+            currentCategory = found;
+        } else {
+            break;
         }
-
-        return category;
     }
 
-    const subCategoryTwo = findSubCategoryByName(subCategoryOne?.subCategories, subCategoryTwoName);
-
-    if (!subCategoryTwo?.subCategories?.length) {
-        if (subCategoryTwo) {
-            return subCategoryTwo;
-        }
-
-        return subCategoryOne;
-    }
-
-    const subCategoryThree = findSubCategoryByName(subCategoryTwo?.subCategories, subCategoryThreeName);
-
-    if (!subCategoryThree?.subCategories?.length) {
-        if (subCategoryThree) {
-            return subCategoryThree;
-        }
-
-        return subCategoryTwo;
-    }
+    return currentCategory;
 };
 
 const findSubCategoryByName = (siblings, targetName) => {
@@ -270,10 +264,16 @@ const normalizeCategoryName = (categoryName) => {
         .trim();
 };
 
-export const getSubCategoryIds = (categoryId, subCategoryIds) => {
+export const getSubCategoryIds = (categoryId, subCategoryIds = [], visited = new Set()) => {
     if (!Array.isArray(subCategoryIds)) {
         subCategoryIds = [];
     }
+
+    const strId = String(categoryId);
+    if (visited.has(strId)) {
+        return { category: null, subCategoryIds };
+    }
+    visited.add(strId);
 
     const category = getCategoryById(categoryId);
 
@@ -285,8 +285,8 @@ export const getSubCategoryIds = (categoryId, subCategoryIds) => {
 
     const parentId = category.parentId !== undefined && category.parentId !== null ? String(category.parentId) : '0';
 
-    if (parentId && parentId !== '0') {
-        return getSubCategoryIds(parentId, subCategoryIds);
+    if (parentId && parentId !== '0' && parentId !== strId && !visited.has(parentId)) {
+        return getSubCategoryIds(parentId, subCategoryIds, visited);
     }
 
     return { category, subCategoryIds };
@@ -295,26 +295,32 @@ export const getSubCategoryIds = (categoryId, subCategoryIds) => {
 const getCategoriesByIds = (subCategoryIds) => {
     const categories = [];
     subCategoryIds.forEach((id) => {
-        categories.push(getCategoryById(id));
+        const cat = getCategoryById(id);
+        if (cat) categories.push(cat);
     });
     return categories;
 };
 
 export const getSubCategoryNamesByIds = (subCategoryIds) => {
     const categories = getCategoriesByIds(subCategoryIds);
-    return categories.map(category => category.name).reverse();
-}
+    return categories.filter(Boolean).map(category => category.name).reverse();
+};
 
 export const getRootCategory = (categoryId) => {
     let category = getCategoryById(categoryId);
 
     if (!category) return null;
 
+    const visited = new Set();
     while (category && category.parentId && String(category.parentId) !== '0') {
+        const pId = String(category.parentId);
+        if (visited.has(pId)) break;
+        visited.add(pId);
+
         const parent = getCategoryById(category.parentId);
         if (!parent) break;
         category = parent;
     }
 
     return category;
-}
+};

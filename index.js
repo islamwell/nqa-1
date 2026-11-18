@@ -37,7 +37,7 @@ const getSub = async (id) => {
     return subs;
 };
 
-export const getAllCatergories = async () => {
+const getAllCatergories = async () => {
     const catergories = await getCategories();
     let _catergories = [];
 

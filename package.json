@@ -13,12 +13,10 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "axios": "^0.21.1",
-    "dexie": "^3.2.0-beta.1",
+    "axios": "^0.28.1",
+    "dexie": "^3.2.7",
     "fuzzysort": "^1.1.4",
     "html-react-parser": "^1.2.7",
-    "install": "^0.13.0",
-    "npm": "^7.24.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-h5-audio-player": "^3.7.1",
@@ -34,21 +32,21 @@
     "web-vitals": "^0.2.4",
     "workbox-background-sync": "^5.1.3",
     "workbox-broadcast-update": "^5.1.3",
-    "workbox-cacheable-response": "^6.1.5",
+    "workbox-cacheable-response": "^5.1.3",
     "workbox-core": "^5.1.3",
     "workbox-expiration": "^5.1.3",
     "workbox-google-analytics": "^5.1.3",
     "workbox-navigation-preload": "^5.1.3",
     "workbox-precaching": "^5.1.3",
-    "workbox-range-requests": "^6.1.5",
+    "workbox-range-requests": "^5.1.3",
     "workbox-routing": "^5.1.3",
     "workbox-strategies": "^5.1.3",
     "workbox-streams": "^5.1.3"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider craco start",
+    "build": "GENERATE_SOURCEMAP=false NODE_OPTIONS=--openssl-legacy-provider craco build",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider craco test --passWithNoTests",
     "eject": "craco eject"
   },
   "eslintConfig": {
@@ -73,5 +71,8 @@
     "babel-plugin-polyfill-corejs2": "^0.2.2",
     "babel-plugin-polyfill-corejs3": "^0.2.3",
     "babel-plugin-polyfill-regenerator": "^0.2.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

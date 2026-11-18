@@ -1,10 +1,10 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Box,  IconButton,  Paper } from "@material-ui/core";
+import { Box, IconButton, Paper } from "@material-ui/core";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import { useDispatch, useSelector } from "react-redux";
-import { addToDowanloadingQueue } from "../../store/slices/playerSlice";
-import { Image, DynamicAvatar } from '../../components'
+import { addToDowanloadingQueue } from "../../store/slices/downloadSlice";
+import { Image, DynamicAvatar } from "../../components";
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
@@ -14,15 +14,7 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         marginBottom: theme.spacing(2),
         borderRadius: 10,
-        overflow :'hidden',
-        
-        [theme.breakpoints.down("sm")]: {
-            //padding: theme.spacing(3, 1, 3, 1),
-        },
-
-        [theme.breakpoints.up("sm")]: {
-            //padding: theme.spacing(1, 1, 1, 1),
-        },
+        overflow: "hidden",
     },
     title: {
         [theme.breakpoints.down("sm")]: {
@@ -48,22 +40,23 @@ const useStyles = makeStyles((theme) => ({
 export default function ListItem({ data }) {
     const classes = useStyles();
     const dispatch = useDispatch();
-    const { downloadingIds } = useSelector((state) => state.player);
+    const { downloadingIds = [] } = useSelector((state) => state.download || {});
 
     const { id, name, link, image } = data;
 
     const handleDownload = () => {
-        dispatch(addToDowanloadingQueue({ name: name, id: id, link: link, progress: 0 }));
+        dispatch(addToDowanloadingQueue({ name, id, link, progress: 0 }));
     };
 
     const isGenericImage = !image || image.includes("ic_music_node.png");
+    const isDownloading = Boolean(downloadingIds && downloadingIds.some((dId) => String(dId) === String(id)));
 
     return (
         <Paper elevation={0} className={classes.mainContainer}>
             {isGenericImage ? (
                 <DynamicAvatar name={name} className={classes.image} />
             ) : (
-                <Image src={image}  className={classes.image} />
+                <Image src={image} className={classes.image} />
             )}
             <Box pl={2} py={1} display="flex" flexDirection="column" justifyContent="space-between">
                 <Box
@@ -77,7 +70,7 @@ export default function ListItem({ data }) {
 
                 <Box display="flex" justifyContent="flex-start">
                     <IconButton
-                        disabled={downloadingIds.includes(id)}
+                        disabled={isDownloading}
                         onClick={handleDownload}
                         className={classes.buttonContianer}
                         size="small"

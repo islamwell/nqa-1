@@ -148,34 +148,46 @@ export default function PrimarySearchAppBar() {
   const location = useLocation();
 
   useEffect(() => {
+    let active = true;
     const fetchAutocomplete = async () => {
         if (!searchValue || searchValue.trim().length === 0) {
-            setAutocompleteResults({ audios: [], categories: [] });
+            if (active) setAutocompleteResults({ audios: [], categories: [] });
             return;
         }
         try {
             const audios = await getAudioByName(searchValue, 1);
             const cats = await getCategoryByName(searchValue, 1);
-            setAutocompleteResults({ 
-                audios: audios.data.slice(0, 5), 
-                categories: cats.data ? cats.data.slice(0, 5) : [] 
-            });
+            if (active) {
+                setAutocompleteResults({ 
+                    audios: audios.data.slice(0, 5), 
+                    categories: cats.data ? cats.data.slice(0, 5) : [] 
+                });
+            }
         } catch (e) {
             console.error(e);
         }
     };
     const timeoutId = setTimeout(fetchAutocomplete, 200);
-    return () => clearTimeout(timeoutId);
+    return () => {
+        active = false;
+        clearTimeout(timeoutId);
+    };
   }, [searchValue]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('recent_searches');
-    if (saved) setRecentSearches(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem('recent_searches');
+      if (saved) setRecentSearches(JSON.parse(saved));
+    } catch (_) {}
   }, []);
 
   useEffect(() => {
     if (location.pathname.startsWith('/search')) {
-       setSearchValue(decodeURIComponent(location.search.replace('?', '')));
+      try {
+        setSearchValue(decodeURIComponent(location.search.replace('?', '')));
+      } catch (_) {
+        setSearchValue(location.search.replace('?', ''));
+      }
     } else {
        setSearchValue("");
     }
@@ -250,8 +262,8 @@ export default function PrimarySearchAppBar() {
   useEffect(() => {
     const storedVersion = localStorage.getItem('app_version');
     const compareVersions = (v1, v2) => {
-      const parts1 = v1.split('.').map(Number);
-      const parts2 = v2.split('.').map(Number);
+      const parts1 = (v1 || '').split('.').map(Number);
+      const parts2 = (v2 || '').split('.').map(Number);
       for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
         const p1 = parts1[i] || 0;
         const p2 = parts2[i] || 0;
@@ -263,21 +275,10 @@ export default function PrimarySearchAppBar() {
     if (!storedVersion || compareVersions(version, storedVersion) > 0) {
       localStorage.setItem('app_version', version);
       dispatch(downloadAudioList());
+    } else {
+      handleOffline();
     }
-    handleOffline()
-  }, [])
-
-  // useEffect(() => {
-  //     const getStatus = async () => {
-  //         offlineAPI
-  //             .getAudioCount()
-  //             .then((res) => {
-  //                 if (res > 0) dispatch(updateOfflineStatus(true));
-  //             })
-  //             .catch((e) => console.log(e));
-  //     };
-  //     getStatus();
-  // }, []);
+  }, []);
 
   const toggleMobileMenu = () => {
     setOpen((state) => !state);
@@ -289,10 +290,9 @@ export default function PrimarySearchAppBar() {
   };
 
   useEffect(() => {
-    if (open) {
-      document.getElementById("app-main-content").style.display = " none";
-    } else {
-      document.getElementById("app-main-content").style.display = " unset";
+    const mainContent = document.getElementById("app-main-content");
+    if (mainContent) {
+      mainContent.style.display = open ? "none" : "unset";
     }
   }, [open]);
   return (

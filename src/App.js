@@ -3,7 +3,6 @@ import "./App.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Home from "./containers/home";
 import Catergory from "./containers/catergory";
-import Player from "./containers/player";
 import Layout from "./containers/layout";
 import Search from "./containers/search";
 
@@ -44,11 +43,11 @@ function App() {
       <Router>
         <Layout>
           <Switch>
-            <Route path="/category/:category/:subCategoryOne?/:subCategoryTwo?/:subCategoryThree?">
+            <Route path="/category/:category/:subCategoryOne?/:subCategoryTwo?/:subCategoryThree?/:subCategoryFour?/:subCategoryFive?">
               <Catergory />
             </Route>
             <Route exact path="/item">
-              <Player />
+              <Home />
             </Route>
             <Route exact path="/search">
               <Search />

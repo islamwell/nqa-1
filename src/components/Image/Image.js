@@ -23,13 +23,15 @@ export default function Image({ src, ...rest }) {
         setStatus("error");
     };
 
+    const secureSrc = src ? String(src).replace(/^http:\/\//i, 'https://') : src;
+
     return (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <img
                 style={status === "success" ? { display: "flex" } : { display: "none" }}
                 onLoad={onLoad}
                 onError={onError}
-                src={src}
+                src={secureSrc}
                 alt="cover_image"
                 {...rest}
             />

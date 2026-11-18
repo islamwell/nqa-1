@@ -95,7 +95,7 @@ export default function RecentlyPlayed() {
                 .map((item, key) => (
                     <Box
                         onClick={() => handlePlay(item.name, item.link, item.id, item.image, item.categoryId)}
-                        className={item.id === playingId ? classes.playingItemContainer : classes.itemContainer}
+                        className={String(item.id) === String(playingId) ? classes.playingItemContainer : classes.itemContainer}
                         display="flex"
                         alignItems="center"
                         paddingTop={1}

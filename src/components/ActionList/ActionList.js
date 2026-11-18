@@ -22,7 +22,7 @@ import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import LinkIcon from "@material-ui/icons/Link";
 import parse from "html-react-parser";
 import ReactTooltip from "react-tooltip";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CloseIcon from "@material-ui/icons/Close";
 
@@ -101,11 +101,16 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
         data;
 
     const handleDownload = async () => {
+        if (!link) return;
+        const httpsLink = link.replace(/^http:\/\//i, "https://");
         if (isDownloaded) {
             try {
-                const cache = await caches.open("audio_cache");
-                const res = await cache.delete(new Request(link));
-                if (res) setIsDownloaded(false);
+                if (typeof caches !== "undefined") {
+                    const cache = await caches.open("audio_cache");
+                    const res1 = await cache.delete(new Request(link));
+                    const res2 = httpsLink !== link ? await cache.delete(new Request(httpsLink)) : false;
+                    if (res1 || res2) setIsDownloaded(false);
+                }
             } catch (error) { }
         } else {
             dispatch(
@@ -123,12 +128,21 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
     };
 
     useEffect(() => {
-        caches
-            .match(new Request(link))
-            .then((res) => {
-                if (res) setIsDownloaded(true); //checking whether already downloaaded
+        if (!link || typeof caches === "undefined") {
+            setIsDownloaded(false);
+            return;
+        }
+        const httpsLink = link.replace(/^http:\/\//i, "https://");
+        Promise.all([
+            caches.match(new Request(link)).catch(() => null),
+            httpsLink !== link ? caches.match(new Request(httpsLink)).catch(() => null) : Promise.resolve(null),
+        ])
+            .then(([res1, res2]) => {
+                setIsDownloaded(Boolean(res1 || res2));
             })
-            .catch((e) => { });
+            .catch(() => {
+                setIsDownloaded(false);
+            });
     }, [downloadingIds, link]);
 
     //  favorite category related code
@@ -148,7 +162,7 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
             progress: undefined,
         });
     useEffect(() => {
-        if (favorite.find((item) => item.id === id)) {
+        if (favorite.find((item) => String(item.id) === String(id))) {
             setPresent(true);
         } else {
             setPresent(false);
@@ -198,18 +212,18 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
 
     function downloadResource(url, filename) {
         notifys();
-        if (!filename) filename = url.split("\\").pop().split("/").pop();
-        filename = filename.replace(".", "  ")
+        let safeName = filename;
+        if (!safeName) safeName = url.split("\\").pop().split("/").pop();
+        if (safeName && !safeName.toLowerCase().endsWith(".mp3")) {
+            safeName = `${safeName}.mp3`;
+        }
         fetch(url, {
-            headers: new Headers({
-                Origin: window.location.origin,
-            }),
             mode: "cors",
         })
             .then((response) => response.blob())
             .then((blob) => {
                 let blobUrl = window.URL.createObjectURL(blob);
-                forceDownload(blobUrl, filename);
+                forceDownload(blobUrl, safeName);
             })
             .catch((e) => console.error(e));
     }
@@ -265,20 +279,13 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                         />
                                     </IconButton>
                                 )}
-                                <IconButton size="small">
-                                    <a
-                                        className="download-icon-container"
-                                        data-tip="downloading"
-                                        // href={`data:${fileType},` + link}
-                                        // target="_blank"
-                                        // download={name}
-                                        onClick={() => {
-                                            // notify("downloading")
-                                            downloadResource(link, name);
-                                        }}
-                                    >
-                                        <DownloadIcon color={currentPlayingPosition === "player" ? "inherit" : "action"} style={{ color: currentPlayingPosition === "player" ? 'white' : undefined }} />
-                                    </a>
+                                <IconButton
+                                    size="small"
+                                    className="download-icon-container"
+                                    data-tip="downloading"
+                                    onClick={() => downloadResource(link, name)}
+                                >
+                                    <DownloadIcon color={currentPlayingPosition === "player" ? "inherit" : "action"} style={{ color: currentPlayingPosition === "player" ? 'white' : undefined }} />
                                 </IconButton>
                                 <IconButton onClick={handleFavorite} size="small">
                                     <FavoriteBorderIcon
@@ -328,17 +335,8 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                     data-tip="Share on Twitter"
                                     class="btn-twitter"
                                     href={`https://twitter.com/share?url=${link}&text=Assalamo alaykum. What do you think of this audio?`}
-                                    // onClick={(e) => {
-                                    //     window.open(
-                                    //         "https://twitter.com/share?url=" +
-                                    //         link +
-                                    //         "&text=Assalamo alaykum. What do you think of this audio?",
-                                    //         "Twitter",
-                                    //         "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600"
-                                    //     );
-                                    //     return false;
-                                    // }}
                                     target="_blank"
+                                    rel="noreferrer noopener"
                                     title="Share on Twitter"
                                     style={{ color: (currentPlayingPosition === 'player' || !w400) ? 'white' : '#777' }}
                                 >
@@ -349,15 +347,8 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                     data-tip="Share on Facebook"
                                     class="btn-facebook"
                                     href={`https://www.facebook.com/sharer/sharer.php?u=${link}`}
-                                    // onClick={(e) => {
-                                    //     window.open(
-                                    //         "https://www.facebook.com/sharer/sharer.php?u=" + link,
-                                    //         "",
-                                    //         "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600"
-                                    //     );
-                                    //     return false;
-                                    // }}
                                     target="_blank"
+                                    rel="noreferrer noopener"
                                     title="Share on Facebook"
                                     style={{ color: (currentPlayingPosition === 'player' || !w400) ? 'white' : '#777' }}
                                 >
@@ -371,16 +362,8 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
                                         "https://api.whatsapp.com/send?text=Assalamo alaykum. What do you think of this audio?" +
                                         link
                                     }
-                                    // onClick={(e) => {
-                                    //     window.open(
-                                    //         "https://api.whatsapp.com/send?text=Assalamo alaykum. What do you think of this audio? " +
-                                    //         link,
-                                    //         "",
-                                    //         "menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600"
-                                    //     );
-                                    //     return false;
-                                    // }}
                                     target="_blank"
+                                    rel="noreferrer noopener"
                                     title="Share on Whatsapp"
                                     style={{ color: (currentPlayingPosition === 'player' || !w400) ? 'white' : '#777' }}
                                 >
@@ -413,7 +396,6 @@ export default function ActionList({ data, currentPlayingPosition, children }) {
             </Box>
             {/* <DialogBox open={playlist} handleClose={handleDialog} title={"Add Playlist"} data={data} /> */}
             {DialogBoxMemo}
-            <ToastContainer autoClose={1000} className="notification-container-copied" />
         </>
     );
 }

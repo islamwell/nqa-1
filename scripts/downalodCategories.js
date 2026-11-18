@@ -18,7 +18,7 @@ const getSubCategories = async (id, page = 1) => {
     const data = response.data;
 
     if (data.allpage > page) {
-        return data.data.concat(await getCategories(id, page + 1));
+        return data.data.concat(await getSubCategories(id, page + 1));
     } else {
         return data.data;
     }
@@ -30,11 +30,9 @@ const getSub = async (id) => {
         if (subs[i].countSub > 0) {
             const _sub = await getSub(subs[i].id);
             subs[i].SubCategories = _sub;
-            return subs[i];
-        } else {
-            return subs[i];
         }
     }
+    return subs;
 };
 
 export const getAllCatergories = async () => {
@@ -45,10 +43,9 @@ export const getAllCatergories = async () => {
         if (catergories[i].countSub > 0) {
             const _sub = await getSub(catergories[i].id);
             catergories[i].SubCategories = _sub;
-            _catergories.push(catergories[i]);
         }
+        _catergories.push(catergories[i]);
     }
 
-    return catergories;
+    return _catergories;
 };
-

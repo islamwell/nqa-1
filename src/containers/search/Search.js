@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -8,7 +8,6 @@ import { Image, ListItem, RecentlyPlayed } from "../../components";
 import { useSelector } from "react-redux";
 import { useData } from "../../hooks/useData";
 import { useLocation, useHistory } from "react-router-dom";
-import { useMediaQuery } from "@material-ui/core";
 import parse from "html-react-parser"
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 
@@ -70,15 +69,21 @@ export default function Search() {
   const classes = useStyles();
   const { search } = useLocation();
   const history = useHistory();
-  const theme = useTheme();
 
   const searchText = search.split("?")[1];
+  let decodedSearchText = "";
+  if (searchText) {
+    try {
+      decodedSearchText = decodeURIComponent(searchText);
+    } catch (_) {
+      decodedSearchText = searchText;
+    }
+  }
+
   const [activeTab, setActiveTab] = useState(1);
 
   const { offlineMode } = useSelector((state) => state.download);
   const { playing } = useSelector((state) => state.player);
-
-  const matches = useMediaQuery(theme.breakpoints.down("xs"));
 
   const handleCategoryClick = (id) => {
     navigateToCategory(id, history);
@@ -97,15 +102,8 @@ export default function Search() {
   } = useData({
     searchText: searchText,
     offlineMode: offlineMode,
+    append: true,
   });
-
-  const handleChangePage = (_, page) => {
-    changePage(page);
-  };
-
-  const handleCategorySearchChangePage = (_, page) => {
-    changeCategorySearchPage(page);
-  };
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -147,7 +145,7 @@ export default function Search() {
                 <Box fontWeight="fontWeightBold" mr={2}>
                   Result for
                 </Box>
-                <Box>{decodeURIComponent(searchText)}</Box>
+                <Box>{decodedSearchText}</Box>
               </Box>
             )}
             {!searchText && (

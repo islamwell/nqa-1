@@ -24,7 +24,13 @@ const collectLeafCategoryIds = (category) => {
 export const useData = (props = {}) => {
     const dispatch = useDispatch();
 
-    const { offlineMode = false, searchText = undefined, categoryId = undefined, shouldSearch = true } = props;
+    const {
+        offlineMode = false,
+        searchText = undefined,
+        categoryId = undefined,
+        shouldSearch = true,
+        append = false,
+    } = props;
     const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
@@ -32,6 +38,13 @@ export const useData = (props = {}) => {
     const [categoryList, setCategoryList] = useState([]);
     const [categorySearchCurrentPage, setCategorySearchCurrentPage] = useState(1);
     const [categorySearchTotalPages, setCategorySearchTotalPages] = useState(1);
+
+    const updateList = (prev, incoming) => {
+        if (!append || currentPage === 1) {
+            return incoming || [];
+        }
+        return [...prev, ...(incoming || [])];
+    };
 
     useEffect(() => {
         setCurrentPage(1);
@@ -44,20 +57,24 @@ export const useData = (props = {}) => {
         if (!parent || !parent.subCategories || parent.subCategories.length === 0) {
             return null; // Not a parent category
         }
-        const leafIds = collectLeafCategoryIds(parent);
+        const leafIds = collectLeafCategoryIds(parent).slice(0, 15);
         if (leafIds.length === 0) return null;
 
         const allResults = [];
-        // Fetch page 1 from every leaf child
-        const promises = leafIds.map((id) =>
-            axios
-                .get(`${domain}/index.php/api/songCategory?page=1&categoryId=${id}`)
-                .then((res) => res?.data?.data || [])
-                .catch(() => [])
-        );
-        const results = await Promise.all(promises);
-        for (const list of results) {
-            allResults.push(...list);
+        // Fetch page 1 from leaf children in small batches to prevent server flooding
+        const batchSize = 5;
+        for (let i = 0; i < leafIds.length; i += batchSize) {
+            const batch = leafIds.slice(i, i + batchSize);
+            const batchPromises = batch.map((id) =>
+                axios
+                    .get(`${domain}/index.php/api/songCategory?page=1&categoryId=${id}`)
+                    .then((res) => res?.data?.data || [])
+                    .catch(() => [])
+            );
+            const batchResults = await Promise.all(batchPromises);
+            for (const list of batchResults) {
+                if (Array.isArray(list)) allResults.push(...list);
+            }
         }
 
         if (allResults.length === 0) return null;
@@ -72,7 +89,7 @@ export const useData = (props = {}) => {
         };
     };
 
-    const getAudioListOnline = async () => {
+    const getAudioListOnline = async (isMounted = () => true) => {
         if (!shouldSearch) {
             return;
         }
@@ -82,7 +99,7 @@ export const useData = (props = {}) => {
         let link = `${domain}/index.php/api/songView?page=${currentPage}`;
 
         if (searchText) {
-            link = `${domain}/index.php/api/nameSong?song=${searchText}&page=${currentPage}`;
+            link = `${domain}/index.php/api/nameSong?song=${encodeURIComponent(searchText)}&page=${currentPage}`;
         }
 
         if (categoryId) {
@@ -92,6 +109,7 @@ export const useData = (props = {}) => {
         axios
             .get(link)
             .then(async (res) => {
+                if (!isMounted()) return;
                 const list = res?.data?.data || [];
                 const pages = res?.data?.allpage || 1;
 
@@ -99,8 +117,9 @@ export const useData = (props = {}) => {
                     // Try fetching from child subcategories first
                     try {
                         const childResult = await fetchFromChildCategories(categoryId);
+                        if (!isMounted()) return;
                         if (childResult && childResult.data.length > 0) {
-                            setAudioList(prev => currentPage === 1 ? childResult.data : [...prev, ...childResult.data]);
+                            setAudioList(prev => updateList(prev, childResult.data));
                             setTotalPages(childResult.allpage || 1);
                             setLoading(false);
                             return;
@@ -109,51 +128,58 @@ export const useData = (props = {}) => {
 
                     try {
                         const offline = await offlineAPI.getAudioByCategory(categoryId, currentPage);
-                        setAudioList(prev => currentPage === 1 ? offline.data : [...prev, ...offline.data]);
+                        if (!isMounted()) return;
+                        setAudioList(prev => updateList(prev, offline.data));
                         setTotalPages(offline.allpage || 1);
                     } catch (_) {
-                        setAudioList(prev => currentPage === 1 ? list : [...prev, ...list]);
+                        if (!isMounted()) return;
+                        setAudioList(prev => updateList(prev, list));
                         setTotalPages(pages);
                     } finally {
-                        setLoading(false);
+                        if (isMounted()) setLoading(false);
                     }
                 } else {
-                    setAudioList(prev => currentPage === 1 ? list : [...prev, ...list]);
+                    setAudioList(prev => updateList(prev, list));
                     setTotalPages(pages);
                     setLoading(false);
                 }
             })
             .catch(async (e) => {
+                if (!isMounted()) return;
                 try {
                     if (searchText) {
                         const res = await offlineAPI.getAudioByName(searchText, currentPage);
-                        setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
+                        if (!isMounted()) return;
+                        setAudioList(prev => updateList(prev, res.data));
                         setTotalPages(res.allpage || 1);
                     } else if (categoryId) {
                         // Try child categories first
                         try {
                             const childResult = await fetchFromChildCategories(categoryId);
+                            if (!isMounted()) return;
                             if (childResult && childResult.data.length > 0) {
-                                setAudioList(prev => currentPage === 1 ? childResult.data : [...prev, ...childResult.data]);
+                                setAudioList(prev => updateList(prev, childResult.data));
                                 setTotalPages(childResult.allpage || 1);
                                 setLoading(false);
                                 return;
                             }
                         } catch (_) {}
                         const res = await offlineAPI.getAudioByCategory(categoryId, currentPage);
-                        setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
+                        if (!isMounted()) return;
+                        setAudioList(prev => updateList(prev, res.data));
                         setTotalPages(res.allpage || 1);
                     } else {
                         const res = await offlineAPI.getAudio(currentPage);
-                        setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
+                        if (!isMounted()) return;
+                        setAudioList(prev => updateList(prev, res.data));
                         setTotalPages(res.allpage || 1);
                     }
                 } catch (_) {}
-                setLoading(false);
+                if (isMounted()) setLoading(false);
             });
     };
 
-    const getAudioListOffline = async () => {
+    const getAudioListOffline = async (isMounted = () => true) => {
         if (!shouldSearch) {
             return;
         }
@@ -163,21 +189,24 @@ export const useData = (props = {}) => {
 
             if (searchText) {
                 const res = await offlineAPI.getAudioByName(searchText, currentPage);
-                setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
+                if (!isMounted()) return;
+                setAudioList(prev => updateList(prev, res.data));
                 setTotalPages(res.allpage);
             } else if (categoryId) {
                 const res = await offlineAPI.getAudioByCategory(categoryId, currentPage);
-                setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
+                if (!isMounted()) return;
+                setAudioList(prev => updateList(prev, res.data));
                 setTotalPages(res.allpage);
             } else {
                 const res = await offlineAPI.getAudio(currentPage);
-                setAudioList(prev => currentPage === 1 ? res.data : [...prev, ...res.data]);
+                if (!isMounted()) return;
+                setAudioList(prev => updateList(prev, res.data));
                 setTotalPages(res.allpage);
             }
 
-            setLoading(false);
+            if (isMounted()) setLoading(false);
         } catch (error) {
-            setLoading(false);
+            if (isMounted()) setLoading(false);
         }
     };
 
@@ -190,11 +219,16 @@ export const useData = (props = {}) => {
     };
 
     useEffect(() => {
+        let mounted = true;
+        const isMounted = () => mounted;
         if (!offlineMode) {
-            getAudioListOnline();
+            getAudioListOnline(isMounted);
         } else {
-            getAudioListOffline();
+            getAudioListOffline(isMounted);
         }
+        return () => {
+            mounted = false;
+        };
     }, [currentPage, searchText, categoryId, offlineMode]);
 
     useEffect(() => {

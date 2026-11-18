@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import Box from "@material-ui/core/Box";
 import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/core/styles";
@@ -141,10 +141,10 @@ export default function Player() {
     };
 
     const handleTogglePlayPause = () => {
-        const audio = document.getElementsByTagName('audio')[0];
+        const audio = playerRef.current?.audio?.current || document.getElementsByTagName('audio')[0];
         if (!audio) return;
         if (audio.paused) {
-            audio.play();
+            audio.play().catch(() => {});
             dispatch(toggle(true));
         } else {
             audio.pause();
@@ -154,24 +154,21 @@ export default function Player() {
 
     const categoryName = useMemo(() => offlineAPI.getCategoryById(categoryId)?.name, [categoryId]);
 
-    // add listner to detect the end of the audio
-
-    useEffect(() => {
-        const player = document.getElementsByTagName("audio")[0];
-        if (player && !player?.onended) {
-            player.onended = function (e) {
-                // Clear progress when the lecture finishes so it starts at 0 next time
-                if (id && id !== -1) {
-                    localStorage.removeItem(`nqa_playback_progress_${id}`);
-                }
-                handleNext();
-            };
+    const handleAudioEnded = () => {
+        if (id && id !== -1) {
+            localStorage.removeItem(`nqa_playback_progress_${id}`);
         }
-    }, [id]);
+        handleNext();
+    };
 
+    const lastSavedRef = useRef(0);
     const saveProgress = (time) => {
         if (!id || id === -1) return;
-        localStorage.setItem(`nqa_playback_progress_${id}`, time);
+        const now = Date.now();
+        if (now - lastSavedRef.current > 1000) {
+            lastSavedRef.current = now;
+            localStorage.setItem(`nqa_playback_progress_${id}`, time);
+        }
     };
 
     const restoreProgress = (audio) => {
@@ -187,6 +184,8 @@ export default function Player() {
 
     if (!open) return null;
 
+    const currentImage = currentAudioList?.find((audio) => String(audio.id) === String(id))?.image;
+
     return (
         <Box
             className={classes.root}
@@ -195,8 +194,19 @@ export default function Player() {
             zIndex={2}
             style={
                 minimized
-                    ? { height: '56px', width: '20%', left: 'auto', right: 20, bottom: 20, borderRadius: 10 }
-                    : (sm ? { height: '160px' } : matches ? { height: '145px' } : {})
+                    ? {
+                          height: '56px',
+                          width: isMobile ? 'calc(100% - 32px)' : '320px',
+                          left: isMobile ? 16 : 'auto',
+                          right: isMobile ? 16 : 20,
+                          bottom: 20,
+                          borderRadius: 10,
+                      }
+                    : sm
+                    ? { height: '160px' }
+                    : matches
+                    ? { height: '145px' }
+                    : {}
             }
         >
             <Box className={classes.playerContainer} width="100%" display="flex" flexDirection="column" justifyContent={minimized ? 'center' : 'flex-start'}>
@@ -269,13 +279,14 @@ export default function Player() {
                     customAdditionalControls={[
                         RHAP_UI.LOOP,
                         matches ? null :
-                            <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentAudioList.filter(audio => audio.id === id)[0]?.image }} currentPlayingPosition="player" />
+                            <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentImage }} currentPlayingPosition="player" />
                     ]}
                     className={classes.player}
                     autoPlay
-                    src={link}
+                    src={link ? link.replace(/^http:\/\//i, 'https://') : ''}
                     onListen={(e) => saveProgress(e.target.currentTime)}
                     onLoadedData={(e) => restoreProgress(e.target)}
+                    onEnded={handleAudioEnded}
                     onClickNext={handleNext}
                     onClickPrevious={handlePrevious}
                     onPlay={() => togglePlayer(true)}
@@ -283,7 +294,7 @@ export default function Player() {
                     footer={!matches ? null :
                         (
                             <Box display="flex" justifyContent="center" alignItems="center">
-                                <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentAudioList.filter(audio => audio.id === id)[0]?.image }} currentPlayingPosition="player" />
+                                <ActionList data={{ link, name, id, categoryId, category_id: 0, image: currentImage }} currentPlayingPosition="player" />
                             </Box>
                         )
                     }

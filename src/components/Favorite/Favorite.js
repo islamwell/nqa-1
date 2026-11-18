@@ -142,7 +142,7 @@ function Favorite() {
         .slice((page - 1) * itemsPerPage, page * itemsPerPage)
         .map((item, key) => (
           <Box
-            className={item.link === "category-link" ? classes.itemContainerCategory : (item.id === playingId ? classes.playingItemContainer : classes.itemContainer)}
+            className={item.link === "category-link" ? classes.itemContainerCategory : (String(item.id) === String(playingId) ? classes.playingItemContainer : classes.itemContainer)}
             display="flex"
             alignItems="center"
             paddingTop={1}

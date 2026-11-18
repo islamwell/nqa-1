@@ -25,7 +25,7 @@ self.addEventListener('install', (event) => {
 
 setCacheNameDetails({
     prefix: "nurulquran",
-    suffix: "3.64",
+    suffix: "3.71",
     precache: "nurulquran-precache",
     runtime: "nurulquran-runtime",
 });
@@ -62,27 +62,17 @@ registerRoute(
     createHandlerBoundToURL(process.env.PUBLIC_URL + "/index.html")
 );
 
-// An example runtime caching route for requests that aren't handled by the
-// precache, in this case same-origin .png requests like those from in public/
 registerRoute(
-    // Add in any other file extensions or routing criteria as needed.
-    ({ url }) => url.origin === self.location.origin && url.pathname.endsWith(".png"), // Customize this strategy as needed, e.g., by changing to CacheFirst.
-    new StaleWhileRevalidate({
-        cacheName: "images",
-        plugins: [
-            // Ensure that once this runtime cache reaches a maximum size the
-            // least-recently used images are removed.
-        ],
-    })
-);
-
-registerRoute(
-    ({ url }) => url.pathname.endsWith(".jpg") || url.pathname.endsWith(".png"),
+    ({ url }) => url.pathname.endsWith(".jpg") || url.pathname.endsWith(".png") || url.pathname.endsWith(".webp") || url.pathname.endsWith(".svg"),
     new CacheFirst({
         cacheName: "image_cache",
         plugins: [
             new CacheableResponsePlugin({
                 statuses: [0, 200],
+            }),
+            new ExpirationPlugin({
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                maxEntries: 200,
             }),
         ],
     })
@@ -121,11 +111,11 @@ registerRoute(
 );
 
 registerRoute(
-    ({ url }) => url.pathname.endsWith(".mp3") || url.pathname.endsWith(".mp4"),
+    ({ url }) => url.pathname.endsWith(".mp3") || url.pathname.endsWith(".mp4") || url.pathname.includes(".mp3"),
     new CacheFirst({
         cacheName: "audio_cache",
         plugins: [
-            new CacheableResponsePlugin({ statuses: [200] }),
+            new CacheableResponsePlugin({ statuses: [0, 200] }),
             new RangeRequestsPlugin(),
             new ExpirationPlugin({
                 maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
