@@ -2,6 +2,8 @@ export const slugify = (str) => {
   const cleaned = (str || '')
     .toString()
     .normalize()
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001F\u007F\u200B]/g, '')
     .replace(/\u00A0/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

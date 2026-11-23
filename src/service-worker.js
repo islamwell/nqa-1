@@ -25,7 +25,7 @@ self.addEventListener('install', (event) => {
 
 setCacheNameDetails({
     prefix: "nurulquran",
-    suffix: "3.71",
+    suffix: "3.72",
     precache: "nurulquran-precache",
     runtime: "nurulquran-runtime",
 });
@@ -100,7 +100,7 @@ registerRoute(
         cacheName: "api_cache",
         plugins: [
             new CacheableResponsePlugin({
-                statuses: [0, 200],
+                statuses: [200],
             }),
             new ExpirationPlugin({
                 maxAgeSeconds: 24 * 60 * 60, // 1 day

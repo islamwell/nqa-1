@@ -1,9 +1,9 @@
-import { Box, Container, IconButton } from "@material-ui/core";
+import { Box, CircularProgress, Container, IconButton } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import { makeStyles } from "@material-ui/core/styles";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import "swiper/components/pagination/pagination.min.css";
@@ -74,8 +74,6 @@ const normalizeSubCategoryName = (name) => {
 export default function Home() {
     const classes = useStyles();
     const params = useParams();
-    const [categoryDetails, setCategoryDetails] = useState(null);
-    const categoryId = categoryDetails?.id;
 
     let categoryName = undefined;
     if (params.category) {
@@ -98,6 +96,18 @@ export default function Home() {
 
     const subCategoryNamesKey = JSON.stringify(subCategoryNames);
 
+    const categoryDetails = useMemo(() => {
+        let details = getCategoryByNameAndSubCategoryNames(categoryName, subCategoryNames);
+        if (!details && typeof categoryName === 'string') {
+            const fallbackName = categoryName.replace(/-/g, ' ');
+            details = getCategoryByNameAndSubCategoryNames(fallbackName, subCategoryNames);
+        }
+        return details || null;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [categoryName, subCategoryNamesKey]);
+
+    const categoryId = categoryDetails?.id;
+
     const { offlineMode } = useSelector((state) => state.download);
     const { playing } = useSelector((state) => state.player);
 
@@ -107,16 +117,6 @@ export default function Home() {
         shouldSearch: !!categoryDetails,
         append: true,
     });
-
-    useEffect(() => {
-        let details = getCategoryByNameAndSubCategoryNames(categoryName, subCategoryNames);
-        if (!details && typeof categoryName === 'string') {
-            const fallbackName = categoryName.replace(/-/g, ' ');
-            details = getCategoryByNameAndSubCategoryNames(fallbackName, subCategoryNames);
-        }
-        setCategoryDetails(details);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [categoryName, subCategoryNamesKey]);
 
     const showPagination = !loading && audioList.length > 0 && totalPages > 1;
 
@@ -186,9 +186,34 @@ export default function Home() {
                         </Paper>
                     </Grid>
                     <Grid item xs={12} md={8}>
-                        {audioList.map((item) => {
-                            return <ListItem currentPlayingPosition="category" key={item.id} data={item} />;
-                        })}
+                        {loading && audioList.length === 0 ? (
+                            <Box
+                                py={6}
+                                display="flex"
+                                flexDirection="column"
+                                alignItems="center"
+                                justifyContent="center"
+                                color="text.secondary"
+                            >
+                                <CircularProgress size={32} />
+                                <Box mt={2}>Loading lectures...</Box>
+                            </Box>
+                        ) : audioList.length === 0 ? (
+                            <Box py={6} textAlign="center" color="text.secondary">
+                                {categoryDetails?.subCategories?.length > 0
+                                    ? "Select a sub-category above to view its lectures."
+                                    : "No lectures found in this category."}
+                            </Box>
+                        ) : (
+                            audioList.map((item) => (
+                                <ListItem currentPlayingPosition="category" key={item.id} data={item} />
+                            ))
+                        )}
+                        {loading && audioList.length > 0 && (
+                            <Box py={2} display="flex" justifyContent="center">
+                                <CircularProgress size={24} />
+                            </Box>
+                        )}
                         {showPagination && (
                             <Box py={2} display="flex" justifyContent="center" ref={loaderRef}>
                                 Loading more...

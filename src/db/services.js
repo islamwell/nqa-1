@@ -91,29 +91,97 @@ export const getAudioById = async (id) => {
     return db.table("audioList").get({ id: id.toString() });
 };
 
+export const getDescendantCategoryIds = (categoryId) => {
+    if (categoryId === undefined || categoryId === null || categoryId === "") return [];
+    const root = getCategoryById(categoryId);
+    if (!root) return [categoryId];
+
+    const ids = [];
+    const visited = new Set();
+    const walk = (node) => {
+        if (!node || node.id === undefined || node.id === null) return;
+        const strId = String(node.id);
+        if (visited.has(strId)) return;
+        visited.add(strId);
+        ids.push(node.id);
+        if (Array.isArray(node.subCategories)) {
+            for (const child of node.subCategories) {
+                walk(child);
+            }
+        }
+    };
+    walk(root);
+    return ids;
+};
+
 export const getAudioByCategory = async (categoryId, page = 1) => {
     try {
-        const strId = String(categoryId);
-        const numId = Number(categoryId);
+        if (categoryId === undefined || categoryId === null || categoryId === "") {
+            return { data: [], allpage: 1 };
+        }
+
+        const targetIds = getDescendantCategoryIds(categoryId);
+        const categoryOrder = new Map();
+        const idSet = new Set();
+        const queryKeys = [];
+        const seenKeys = new Set();
+
+        targetIds.forEach((id, index) => {
+            const strId = String(id);
+            categoryOrder.set(strId, index);
+            idSet.add(strId);
+            if (!seenKeys.has(strId)) {
+                seenKeys.add(strId);
+                queryKeys.push(strId);
+            }
+            const numId = Number(id);
+            if (!Number.isNaN(numId) && !seenKeys.has(numId)) {
+                seenKeys.add(numId);
+                queryKeys.push(numId);
+            }
+        });
 
         let items = [];
         try {
-            items = await db
-                .table("audioList")
-                .where("category_id")
-                .equals(numId)
-                .or("category_id")
-                .equals(strId)
-                .toArray();
+            const table = db.table("audioList");
+            if (targetIds.length === 1) {
+                const strId = String(targetIds[0]);
+                const numId = Number(targetIds[0]);
+                items = !Number.isNaN(numId)
+                    ? await table.where("category_id").equals(numId).or("category_id").equals(strId).toArray()
+                    : await table.where("category_id").equals(strId).toArray();
+            } else {
+                items = await table.where("category_id").anyOf(queryKeys).toArray();
+            }
         } catch (_) {
-            const allItems = await db.table("audioList").limit(5000).toArray();
-            items = allItems.filter((item) => String(item.category_id) === strId);
+            const allItems = await db.table("audioList").toArray();
+            items = allItems.filter((item) => idSet.has(String(item.category_id)));
         }
+
+        // Deduplicate by ID and preserve tree order -> order_number -> id
+        const uniqueMap = new Map();
+        items.forEach((item) => {
+            if (item && item.id !== undefined && !uniqueMap.has(String(item.id))) {
+                uniqueMap.set(String(item.id), item);
+            }
+        });
+        const uniqueItems = Array.from(uniqueMap.values());
+        uniqueItems.sort((a, b) => {
+            const catOrderA = categoryOrder.get(String(a.category_id)) ?? Number.MAX_SAFE_INTEGER;
+            const catOrderB = categoryOrder.get(String(b.category_id)) ?? Number.MAX_SAFE_INTEGER;
+            if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+
+            const ordA = Number(a.order_number || 0);
+            const ordB = Number(b.order_number || 0);
+            if (ordA !== ordB) return ordA - ordB;
+
+            return Number(a.id || 0) - Number(b.id || 0);
+        });
 
         const start = (page - 1) * pageSize;
         const end = start + pageSize;
-        const data = items.slice(start, end);
-        const allpage = Math.max(1, Math.ceil(items.length / pageSize));
+        const data = uniqueItems.slice(start, end);
+        const allpage = Math.max(1, Math.ceil(uniqueItems.length / pageSize));
 
         return { data, allpage };
     } catch (error) {
@@ -258,6 +326,8 @@ const normalizeCategoryName = (categoryName) => {
     return categoryName
         .toString()
         .normalize()
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\u0000-\u001F\u007F\u200B]/g, '')
         .replace(/\u00A0/g, ' ')
         .replace(/[\s_-]+/g, ' ')
         .replace(/\b0+(\d+)\b/g, '$1')
