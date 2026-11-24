@@ -59,12 +59,16 @@ const normalizeSubCategoryName = (name) => {
         return decodeURIComponent(name)
             .toString()
             .normalize()
+            // eslint-disable-next-line no-control-regex
+            .replace(/[\u0000-\u001F\u007F\u200B]/g, '')
             .replace(/\u00A0/g, ' ')
             .replace(/[\s_-]+/g, ' ')
             .trim();
     } catch (e) {
         return name.toString()
             .normalize()
+            // eslint-disable-next-line no-control-regex
+            .replace(/[\u0000-\u001F\u007F\u200B]/g, '')
             .replace(/\u00A0/g, ' ')
             .replace(/[\s_-]+/g, ' ')
             .trim();

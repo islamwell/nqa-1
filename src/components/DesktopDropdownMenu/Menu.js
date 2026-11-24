@@ -64,6 +64,14 @@ export default function Menu({ category }) {
         if (anchorRef.current && anchorRef.current.contains(event.target)) {
             return;
         }
+        if (
+            event &&
+            event.target &&
+            typeof event.target.closest === "function" &&
+            event.target.closest('[data-dropdown-menu="true"]')
+        ) {
+            return;
+        }
 
         setOpen(false);
     };
@@ -101,7 +109,11 @@ export default function Menu({ category }) {
         return categories?.map((category, key) => {
             if (category.subCategories && category.subCategories.length > 0) {
                 return (
-                    <SubMenu key={key} label={category.name}>
+                    <SubMenu
+                        key={key}
+                        label={category.name}
+                        onSelect={() => handleSelectCategory(category)}
+                    >
                         {rederCategories(category.subCategories)}
                     </SubMenu>
                 );
@@ -139,7 +151,10 @@ export default function Menu({ category }) {
                                 }}
                                 timeout={250}
                             >
-                                <Paper style={{ marginTop: 0, marginBottom: 0 }}>
+                                <Paper
+                                    data-dropdown-menu="true"
+                                    style={{ marginTop: 0, marginBottom: 0, maxHeight: "75vh", overflowY: "auto" }}
+                                >
                                     <ClickAwayListener onClickAway={handleClose}>
                                         <MenuList autoFocusItem={open} id="menu-list-grow" onKeyDown={handleListKeyDown}>
                                             {rederCategories(category?.subCategories)}

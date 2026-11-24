@@ -9,7 +9,7 @@ export const slugify = (str) => {
     .trim();
 
   return encodeURIComponent(cleaned)
-    .replace(/%20+/g, '-')
+    .replace(/(?:%20)+/g, '-')
     .replace(/%E2%80%8B/gi, '');
 };
 

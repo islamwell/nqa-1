@@ -7,25 +7,41 @@
 // You can also remove this file if you'd prefer not to use a
 // service worker, and the Workbox build step will be skipped.
 
-import { clientsClaim } from "workbox-core";
-//import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
+import { clientsClaim, setCacheNameDetails } from "workbox-core";
+import { precacheAndRoute, createHandlerBoundToURL, cleanupOutdatedCaches } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { RangeRequestsPlugin } from "workbox-range-requests";
-import { setCacheNameDetails } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
+import { version } from "./data/config";
 
 clientsClaim();
+cleanupOutdatedCaches();
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", () => {
     self.skipWaiting(); // Force active immediately to push updates to old clients safely
+});
+
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) =>
+            Promise.all(
+                cacheNames
+                    .filter(
+                        (name) =>
+                            (name.startsWith("nurulquran-") && !name.endsWith(`-${version}`)) ||
+                            name === "api_cache"
+                    )
+                    .map((name) => caches.delete(name))
+            )
+        )
+    );
 });
 
 setCacheNameDetails({
     prefix: "nurulquran",
-    suffix: "3.72",
+    suffix: version,
     precache: "nurulquran-precache",
     runtime: "nurulquran-runtime",
 });

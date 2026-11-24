@@ -149,32 +149,36 @@ function Favorite() {
             paddingBottom={1}
             key={key}
           >
-            <Image src={item.image} className={classes.image} />
+            <Image
+              src={item.image}
+              className={classes.image}
+              onClick={() => {
+                if (item.link === "category-link") {
+                  navigateToCategory(item.id, history);
+                }
+              }}
+            />
 
             <Box
               onClick={() => {
-                if (item.link !== "category-link") {
-                  return handlePlay(
-                    item.name,
-                    item.link,
-                    item.id,
-                    item.image,
-                    item.categoryId
-                  );
+                if (item.link === "category-link") {
+                  navigateToCategory(item.id, history);
+                  return;
                 }
+                return handlePlay(
+                  item.name,
+                  item.link,
+                  item.id,
+                  item.image,
+                  item.categoryId
+                );
               }}
               className="fav-name-container"
               marginLeft={2}
               fontWeight="fontWeightMedium"
               fontSize="body2.fontSize"
             >
-              <p
-                onClick={() => {
-                  if (item.link === "category-link") {
-                    navigateToCategory(item.id, history);
-                  }
-                }}
-              >
+              <p>
                 {" "}
                 {item.name}
               </p>

@@ -82,10 +82,14 @@ export const useData = (props = {}) => {
         }
 
         const parent = getCategoryById(parentCategoryId);
-        if (!parent || !parent.subCategories || parent.subCategories.length === 0) {
-            return null; // Not a parent category
+        let candidateIds = [];
+        if (parent && parent.subCategories && parent.subCategories.length > 0) {
+            candidateIds = collectLeafCategoryIds(parent);
+        } else {
+            const descIds = offlineAPI.getDescendantCategoryIds(parentCategoryId);
+            candidateIds = descIds.filter((id) => String(id) !== strParentId);
         }
-        const leafIds = collectLeafCategoryIds(parent).slice(0, MAX_CHILD_LEAF_FETCH);
+        const leafIds = candidateIds.slice(0, MAX_CHILD_LEAF_FETCH);
         if (leafIds.length === 0) return null;
 
         const allResults = [];

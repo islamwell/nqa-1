@@ -8,7 +8,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import categoryStructure from "../../data/category-strcture";
-import { slugifyLower } from "../../utils";
+import { getCategoryPathByNames } from "../../db/services";
 import { useHistory, useLocation } from "react-router-dom";
 import { navigateToCategory } from "../../helpers/navigateToCategory";
 import Home from "@material-ui/icons/Home";
@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.primary,
     padding: theme.spacing(0),
     overflow: "hidden",
-    textOverflow: "ellipses",
+    textOverflow: "ellipsis",
     fontWeight: "bold",
     [theme.breakpoints.down("xs")]: {
       width: "auto",
@@ -179,8 +179,6 @@ export default function CategorySlider({ data, getMore }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [subCategories, setSubCategories] = useState([]);
-  const [currCategory, setCurrCategory] = useState({});
-  const [currSubCategory, setCurrSubCategory] = useState({});
   const [history, setHistory] = useState([{id: 0, name: "Home"}]);
   const browserHistory = useHistory();
   const { pathname } = useLocation();
@@ -271,91 +269,104 @@ export default function CategorySlider({ data, getMore }) {
   };
 
   useEffect(() => {
-    if (currCategory && currCategory.subCategories) {
-      setSubCategories(currCategory.subCategories);
-      setCurrSubCategory({});
-    } else {
+    const path = pathname || "";
+    if (!path.startsWith("/category/")) {
+      setHistory([{ id: 0, name: "Home" }]);
       setSubCategories([]);
+      setIsSubCatVisible(false);
+      return;
     }
-  }, [currCategory])
 
-  useEffect(() => {
-  const path = pathname || '';
-  if (!path.startsWith('/category/')) return;
-
-  const raw = path.replace('/category/', '');
-    if (!raw) return;
-
-    const segments = raw.split('/').filter(Boolean);
-
-
-    const matched = [];
-    let candidates = categoryStructure;
-
-    for (let seg of segments) {
-      if (!candidates || candidates.length === 0) break;
-      const segSlug = seg.toLowerCase();
-  let found = candidates.find((c) => slugifyLower(c.name) === segSlug);
-      if (!found) {
-        found = candidates.find((c) => String(c.id) === seg);
-      }
-      if (!found) break;
-      matched.push(found);
-      candidates = found.subCategories || [];
-    }
+    const raw = path.replace("/category/", "");
+    const segments = raw.split("/").filter(Boolean);
+    const matched = segments.length > 0 ? getCategoryPathByNames(segments[0], segments.slice(1)) : [];
 
     if (matched.length > 0) {
-      const hist = [{ id: 0, name: 'Home' }, ...matched];
-      setHistory(hist);
+      const hist = [{ id: 0, name: "Home" }, ...matched];
       const last = matched[matched.length - 1];
-      setSubCategories(last.subCategories || []);
-      setCurrCategory(matched[0] || {});
-      if (matched.length > 1) setCurrSubCategory(matched[matched.length - 1] || {});
+      const nextSubs = last.subCategories || [];
+      setHistory(hist);
+      setSubCategories(nextSubs);
+      setIsSubCatVisible(nextSubs.length > 0);
       dispatch(
         changeSubCatsVisible({
           subCatsVisible: true,
         })
       );
+    } else {
+      setHistory([{ id: 0, name: "Home" }]);
+      setSubCategories([]);
+      setIsSubCatVisible(false);
     }
   }, [pathname, dispatch]);
 
-  var subCatOnClick = (item) => {
-    if (item.id === currSubCategory.id) {
+  const subCatOnClick = (item) => {
+    if (!item) return;
+    const nextSubs = item.subCategories || [];
+    setSubCategories(nextSubs);
+    setIsSubCatVisible(nextSubs.length > 0);
+    dispatch(
+      changeSubCatsVisible({
+        subCatsVisible: true,
+      })
+    );
+    navigateToCategory(item.id, browserHistory);
+  };
+
+  const handleHistoryClick = (item) => {
+    if (!item || item.id === 0) {
+      setSubCategories([]);
+      setHistory([{ id: 0, name: "Home" }]);
+      setIsSubCatVisible(false);
+      dispatch(
+        changeSubCatsVisible({
+          subCatsVisible: false,
+        })
+      );
+      browserHistory.push("/");
+    } else {
+      const nextSubs = item.subCategories || [];
+      setIsSubCatVisible(nextSubs.length > 0);
+      dispatch(
+        changeSubCatsVisible({
+          subCatsVisible: true,
+        })
+      );
+      navigateToCategory(item.id, browserHistory);
+    }
+  };
+
+  const handleSliderItemClick = (e, item) => {
+    e.stopPropagation();
+    if (draggingRef.current) return;
+
+    if (item.isLecture) {
+      dispatch(
+        changeURL({
+          name: item.name,
+          link: item.link,
+          id: item.id,
+          image: item.image,
+          categoryId: item.categoryId,
+          currentPlayingPosition: "home",
+        })
+      );
       return;
     }
-    setHistory((prev) => {
-      if (prev.find((h) => h.id === item.id)) return prev;
-      return [...prev, item];
-    });
 
-    if (item.subCategories) {
-      setCurrSubCategory(item);
-      setSubCategories(item.subCategories);
-      navigateToCategory(item.id, browserHistory);
-    } else {
-      setCurrSubCategory(item);
-      handleSelectCategory(item);
-    }
-    !isSubCatVisible && setIsSubCatVisible(true);
+    const nextSubs = item.subCategories || [];
+    dispatch(
+      changeSubCatsVisible({
+        subCatsVisible: true,
+      })
+    );
+    setSubCategories(nextSubs);
+    setHistory([{ id: 0, name: "Home" }, item]);
+    setIsSubCatVisible(nextSubs.length > 0);
+    navigateToCategory(item.id, browserHistory);
   };
 
-  var handleHistoryClick = (item) => {
-    if (item.id === 0) {
-      setCurrCategory({});
-      setSubCategories([]);
-      setCurrSubCategory({});
-      setHistory([{ id: 0, name: "Home" }]);
-      browserHistory.push('/');
-    } else {
-      navigateToCategory(item.id, browserHistory);
-    }
-    !isSubCatVisible && setIsSubCatVisible(true);
-  };
-
-  const handleSelectCategory = ({ id }) => {
-    setIsSubCatVisible(false);
-    navigateToCategory(id, browserHistory);
-  };
+  const isCategoryRoute = (pathname || "").startsWith("/category/");
 
   return (
     <div className={classes.root}>
@@ -394,36 +405,17 @@ export default function CategorySlider({ data, getMore }) {
           {
             sliderItems.map((item) => (
               <div className={classes.item} key={item.id}>
-                <Box>
-                  <Image 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (draggingRef.current) return;
-
-                      if (item.isLecture) {
-                        dispatch(changeURL({
-                          name: item.name,
-                          link: item.link,
-                          id: item.id,
-                          image: item.image,
-                          categoryId: item.categoryId,
-                          currentPlayingPosition: "home"
-                        }));
-                        return;
-                      }
-
-                      dispatch(
-                        changeSubCatsVisible({
-                          subCatsVisible: true
-                        })
-                      )
-                      setCurrCategory(item)
-                      !isSubCatVisible && setIsSubCatVisible(true)
-                      navigateToCategory(item.id, browserHistory);
-                    }} 
-                    src={item.image} className={classes.image}/>
+                <Box onClick={(e) => handleSliderItemClick(e, item)}>
+                  <Image src={item.image} className={classes.image}/>
                 </Box>
-                <Box textAlign="center" textOverflow="ellipsis" overflow="hidden" py={1} fontSize={12}>
+                <Box
+                  onClick={(e) => handleSliderItemClick(e, item)}
+                  textAlign="center"
+                  textOverflow="ellipsis"
+                  overflow="hidden"
+                  py={1}
+                  fontSize={12}
+                >
                   {item.name}
                 </Box>
               </div>
@@ -433,47 +425,43 @@ export default function CategorySlider({ data, getMore }) {
         </div>
           </div>
       {
-        (history.length > 1 || subCategories.length > 0) && subCatsVisible?
+        isCategoryRoute && (history.length > 1 || subCategories.length > 0) && subCatsVisible ?
         <>
         <Box className={classes.title} my={3} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
             <Breadcrumbs >
               {
-                history.map((item, idx) => (
-                  <span key={`history-${item.id}`}>
-                    {/* {idx !== 0 ? ">" : ""} */}
-                    
-                    <Link
-                      className={classes.catLink}
-                      onClick={
-                        idx !== history.length - 1
-                          ? () => handleHistoryClick(item)
-                          : () => {}
-                      }
-                      textOverflow="ellipsis"
-                      overflow="hidden"
-                    >
-                      {idx === 0 ? <Home /> : item.name}
-                    </Link>
-
-                  </span>
-                ))
+                history.map((item, idx) => {
+                  const isLast = idx === history.length - 1;
+                  return (
+                    <span key={`history-${item.id}-${idx}`}>
+                      <Link
+                        className={classes.catLink}
+                        style={isLast ? { cursor: "default", textDecoration: "none" } : undefined}
+                        onClick={!isLast ? () => handleHistoryClick(item) : undefined}
+                      >
+                        {idx === 0 ? <Home /> : item.name}
+                      </Link>
+                    </span>
+                  );
+                })
               }
             </Breadcrumbs>
           
         </Box>
         {
-          isSubCatVisible &&
+          isSubCatVisible && subCategories.length > 0 &&
       <Box mb={2}>
-        {/* <Slider  */}
           <Grid container spacing={2}>
-
-          {/* {...settings} */}
             {
               subCategories.map((item) => (
-                <Grid item className={classes.item} key={item.id} xs= {6} lg={3} sm={6} md={4}>
-                  <Paper variant="outlined" className={classes.categoryContainer}>
+                <Grid item className={classes.item} key={item.id} xs={6} lg={3} sm={6} md={4}>
+                  <Paper
+                    variant="outlined"
+                    className={classes.categoryContainer}
+                    onClick={() => subCatOnClick(item)}
+                  >
                       <Box>
-                        <Image  onClick={() => subCatOnClick(item)} src={item.image} className={classes.image}/>
+                        <Image src={item.image} className={classes.image}/>
                       </Box>
                       <Box textAlign="center" textOverflow="ellipsis" overflow="hidden" py={1} fontSize={12}>
                         {item.name}
@@ -483,8 +471,6 @@ export default function CategorySlider({ data, getMore }) {
               ))
             }
           </Grid>
-          
-          {/* </Slider> */}
           </Box>
         }
         </> : <></>

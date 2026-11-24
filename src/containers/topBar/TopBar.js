@@ -423,10 +423,12 @@ export default function PrimarySearchAppBar() {
                 </Box>
               </MenuItem> */}
               <MenuItem onClick={() => {
+                dispatch(changeSubCatsVisible({ subCatsVisible: false }));
                 history.push("/favorites")
                 handleClose()
               }} button={true}> Favorites </MenuItem>
               <MenuItem onClick={() => {
+                dispatch(changeSubCatsVisible({ subCatsVisible: false }));
                 history.push("/playlist")
                 handleClose()
               }} button={true}> Playlist </MenuItem>

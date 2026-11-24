@@ -55,8 +55,13 @@ export function register(config) {
 
 function registerValidSW(swUrl, config) {
     navigator.serviceWorker
-        .register(swUrl)
+        .register(swUrl, { updateViaCache: "none" })
         .then((registration) => {
+            // If an updated worker is already waiting, activate it immediately
+            if (registration.waiting && config && config.onUpdate) {
+                config.onUpdate(registration);
+            }
+
             registration.onupdatefound = () => {
                 const installingWorker = registration.installing;
                 if (installingWorker == null) {
@@ -65,24 +70,11 @@ function registerValidSW(swUrl, config) {
                 installingWorker.onstatechange = () => {
                     if (installingWorker.state === "installed") {
                         if (navigator.serviceWorker.controller) {
-                            // At this point, the updated precached content has been fetched,
-                            // but the previous service worker will still serve the older
-                            // content until all client tabs are closed.
-                            // console.log(
-                            //     "New content is available and will be used when all " +
-                            //         "tabs for this page are closed. See https://cra.link/PWA."
-                            // );
-
-                            // Execute callback
+                            // Execute callback to trigger SKIP_WAITING immediately
                             if (config && config.onUpdate) {
                                 config.onUpdate(registration);
                             }
                         } else {
-                            // At this point, everything has been precached.
-                            // It's the perfect time to display a
-                            // "Content is cached for offline use." message.
-                            // console.log("Content is cached for offline use.");
-
                             // Execute callback
                             if (config && config.onSuccess) {
                                 config.onSuccess(registration);
@@ -92,10 +84,19 @@ function registerValidSW(swUrl, config) {
                 };
             };
 
-            // Check for updates periodically (every hour)
-            setInterval(() => {
-                registration.update();
-            }, 60 * 60 * 1000); // 1 hour
+            const checkForUpdate = () => {
+                registration.update().catch(() => {});
+            };
+
+            // Check immediately on registration, when app returns to foreground, when online, and periodically
+            checkForUpdate();
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                    checkForUpdate();
+                }
+            });
+            window.addEventListener("online", checkForUpdate);
+            setInterval(checkForUpdate, 30 * 60 * 1000); // Every 30 minutes
         })
         .catch((error) => {
             console.error("Error during service worker registration:", error);

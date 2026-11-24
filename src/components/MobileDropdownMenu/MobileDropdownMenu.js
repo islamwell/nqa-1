@@ -26,11 +26,21 @@ export default function MobileDropdownMenu({ open, onSelect }) {
 
     const handleSelectCategory = (id) => {
         onSelect();
+        dispatch(
+            changeSubCatsVisible({
+                subCatsVisible: true,
+            })
+        );
         navigateToCategory(id, history);
     };
 
     const handleHomeButtom = () => {
         onSelect();
+        dispatch(
+            changeSubCatsVisible({
+                subCatsVisible: false,
+            })
+        );
         history.push("/");
     };
 

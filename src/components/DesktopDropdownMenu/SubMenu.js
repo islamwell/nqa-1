@@ -1,5 +1,4 @@
 import React from "react";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Grow from "@material-ui/core/Grow";
 import Paper from "@material-ui/core/Paper";
 import Popper from "@material-ui/core/Popper";
@@ -30,21 +29,47 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function SubMenu({ children, label }) {
+export default function SubMenu({ children, label, onSelect }) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef(null);
+    const closeTimerRef = React.useRef(null);
 
-    const handleToggle = () => {
+    const clearCloseTimer = () => {
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+            closeTimerRef.current = null;
+        }
+    };
+
+    const handleMouseEnter = () => {
+        clearCloseTimer();
+        setOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+        clearCloseTimer();
+        closeTimerRef.current = setTimeout(() => {
+            setOpen(false);
+        }, 150);
+    };
+
+    React.useEffect(() => {
+        return () => clearCloseTimer();
+    }, []);
+
+    const handleItemClick = () => {
+        if (open && onSelect) {
+            onSelect();
+            setOpen(false);
+            return;
+        }
         setOpen((prevOpen) => !prevOpen);
     };
 
-    const handleClose = (event) => {
-        if (anchorRef.current && anchorRef.current.contains(event.target)) {
-            return;
-        }
-
-        setOpen(false);
+    const handleChevronClick = (event) => {
+        event.stopPropagation();
+        setOpen((prevOpen) => !prevOpen);
     };
 
     function handleListKeyDown(event) {
@@ -54,23 +79,19 @@ export default function SubMenu({ children, label }) {
         }
     }
 
-    // return focus to the button when we transitioned from !open -> open
-    const prevOpen = React.useRef(open);
-    React.useEffect(() => {
-        if (prevOpen.current === true && open === false) {
-            anchorRef.current.focus();
-        }
-
-        prevOpen.current = open;
-    }, [open]);
-
     return (
         <div className={classes.root}>
             <div style={{ width: "100%" }}>
-                <MenuItem className={classes.button} ref={anchorRef} onClick={handleToggle}>
+                <MenuItem
+                    className={classes.button}
+                    ref={anchorRef}
+                    onClick={handleItemClick}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
                     <div className={classes.buttonLebel}>
                         <span>{label}</span>
-                        <ChevronRightIcon />
+                        <ChevronRightIcon onClick={handleChevronClick} />
                     </div>
                 </MenuItem>
 
@@ -80,22 +101,25 @@ export default function SubMenu({ children, label }) {
                     anchorEl={anchorRef.current}
                     role={undefined}
                     transition
-                    disablePortal
+                    style={{ zIndex: 1300 }}
                 >
-                    {({ TransitionProps, placement }) => (
+                    {({ TransitionProps }) => (
                         <Grow
                             {...TransitionProps}
                             style={{
                                 transformOrigin: "top left",
                             }}
-                            timeout={250}
+                            timeout={200}
                         >
-                            <Paper style={{ marginLeft: 2 }}>
-                                <ClickAwayListener onClickAway={handleClose}>
-                                    <MenuList autoFocusItem={open} id="menu-list-grow" onKeyDown={handleListKeyDown}>
-                                        {children}
-                                    </MenuList>
-                                </ClickAwayListener>
+                            <Paper
+                                data-dropdown-menu="true"
+                                style={{ marginLeft: 2, maxHeight: "75vh", overflowY: "auto" }}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
+                            >
+                                <MenuList autoFocusItem={false} id="menu-list-grow" onKeyDown={handleListKeyDown}>
+                                    {children}
+                                </MenuList>
                             </Paper>
                         </Grow>
                     )}

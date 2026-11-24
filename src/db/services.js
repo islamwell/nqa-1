@@ -96,6 +96,23 @@ export const getDescendantCategoryIds = (categoryId) => {
     const root = getCategoryById(categoryId);
     if (!root) return [categoryId];
 
+    const rootsToWalk = [root];
+    if (root.parentId !== undefined && root.parentId !== null && String(root.parentId) !== "0") {
+        const parent = getCategoryById(root.parentId);
+        const normRootName = normalizeCategoryName(root.name)?.toLowerCase();
+        if (parent && Array.isArray(parent.subCategories) && normRootName) {
+            for (const sib of parent.subCategories) {
+                if (
+                    sib &&
+                    String(sib.id) !== String(root.id) &&
+                    normalizeCategoryName(sib.name)?.toLowerCase() === normRootName
+                ) {
+                    rootsToWalk.push(sib);
+                }
+            }
+        }
+    }
+
     const ids = [];
     const visited = new Set();
     const walk = (node) => {
@@ -110,7 +127,9 @@ export const getDescendantCategoryIds = (categoryId) => {
             }
         }
     };
-    walk(root);
+    for (const r of rootsToWalk) {
+        walk(r);
+    }
     return ids;
 };
 
@@ -280,35 +299,92 @@ export const getCategoryByExactName = (searchText) => {
     return recursiveSearchByExactName(categories, searchText)[0];
 };
 
-export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames = []) => {
-    if (!name) return undefined;
-    const category = getCategoryByExactName(name);
-    if (!category) return undefined;
+const safeDecodeURIComponent = (val) => {
+    if (val == null) return val;
+    const str = String(val);
+    try {
+        return decodeURIComponent(str);
+    } catch (_) {
+        return str;
+    }
+};
 
-    if (!Array.isArray(subCategoryNames) || subCategoryNames.length === 0) {
-        return category;
+export const getCategoryPathByNames = (name, subCategoryNames = []) => {
+    if (!name) return [];
+    const decodedName = safeDecodeURIComponent(name);
+    const normRootTarget = normalizeCategoryName(decodedName)?.toLowerCase();
+
+    // 1. Prefer matching top-level root categories first (exact normalized name or ID)
+    let rootCategory = categories.find(
+        (item) =>
+            normalizeCategoryName(item?.name)?.toLowerCase() === normRootTarget ||
+            String(item?.id) === String(decodedName).trim()
+    );
+
+    // 2. Fallback to exact name across tree or fuzzy root match
+    if (!rootCategory) {
+        rootCategory =
+            getCategoryByExactName(decodedName) ||
+            getCategoryByExactName(String(decodedName).replace(/-/g, " ")) ||
+            findSubCategoryByName(categories, decodedName);
     }
 
-    let currentCategory = category;
-    for (const subName of subCategoryNames) {
-        if (!subName || !currentCategory?.subCategories?.length) break;
-        const found = findSubCategoryByName(currentCategory.subCategories, subName);
+    if (!rootCategory) return [];
+
+    const chain = [];
+    if (rootCategory.parentId && String(rootCategory.parentId) !== "0") {
+        const ancestorIds = [];
+        getSubCategoryIds(rootCategory.id, ancestorIds);
+        const ancestors = getCategoriesByIds(ancestorIds).reverse();
+        if (ancestors.length > 0) {
+            chain.push(...ancestors);
+        } else {
+            chain.push(rootCategory);
+        }
+    } else {
+        chain.push(rootCategory);
+    }
+
+    const validSubNames = Array.isArray(subCategoryNames) ? subCategoryNames.filter(Boolean) : [];
+    if (validSubNames.length === 0) {
+        return chain;
+    }
+
+    let currentCategory = chain[chain.length - 1];
+    for (const rawSubName of validSubNames) {
+        if (!currentCategory?.subCategories?.length) break;
+        const found = findSubCategoryByName(currentCategory.subCategories, rawSubName);
         if (found) {
+            chain.push(found);
             currentCategory = found;
         } else {
             break;
         }
     }
 
-    return currentCategory;
+    return chain;
+};
+
+export const getCategoryByNameAndSubCategoryNames = (name, subCategoryNames = []) => {
+    const chain = getCategoryPathByNames(name, subCategoryNames);
+    return chain.length > 0 ? chain[chain.length - 1] : undefined;
 };
 
 const findSubCategoryByName = (siblings, targetName) => {
     if (!siblings || !siblings.length || !targetName) return undefined;
-    const normTarget = normalizeCategoryName(targetName)?.toLowerCase();
+    const decodedTarget = safeDecodeURIComponent(targetName);
+    const normTarget = normalizeCategoryName(decodedTarget)?.toLowerCase();
 
-    const exact = siblings.find((item) => normalizeCategoryName(item?.name)?.toLowerCase() === normTarget);
-    if (exact) return exact;
+    const exactMatches = siblings.filter((item) => normalizeCategoryName(item?.name)?.toLowerCase() === normTarget);
+    if (exactMatches.length === 1) return exactMatches[0];
+    if (exactMatches.length > 1) {
+        const withSubs = exactMatches.find((item) => item?.subCategories?.length > 0);
+        if (withSubs) return withSubs;
+        return exactMatches.slice().sort((a, b) => Number(a.id) - Number(b.id))[0];
+    }
+
+    const byId = siblings.find((item) => String(item?.id) === String(decodedTarget).trim());
+    if (byId) return byId;
 
     try {
         const results = fuzzysort.go(normTarget, siblings, { key: 'name', allowTypo: true });
@@ -330,7 +406,7 @@ const normalizeCategoryName = (categoryName) => {
         .replace(/[\u0000-\u001F\u007F\u200B]/g, '')
         .replace(/\u00A0/g, ' ')
         .replace(/[\s_-]+/g, ' ')
-        .replace(/\b0+(\d+)\b/g, '$1')
+        .replace(/\b0+(\d+[a-zA-Z]*)\b/g, '$1')
         .trim();
 };
 
