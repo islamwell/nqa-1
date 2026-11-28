@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fade, makeStyles } from "@material-ui/core/styles";
 import { Box, Paper, IconButton } from "@material-ui/core";
+import HeadsetRoundedIcon from '@material-ui/icons/HeadsetRounded';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { useDispatch, useSelector } from "react-redux";
@@ -9,22 +10,40 @@ import Image from "../Image";
 
 const useStyles = makeStyles((theme) => ({
     mainContainer: {
-        borderRadius: 10,
-
-        [theme.breakpoints.down("sm")]: {
-            padding: theme.spacing(5),
-        },
-
+        borderRadius: 16,
+        borderColor: fade(theme.palette.primary.main, 0.14),
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        padding: theme.spacing(1.5),
         [theme.breakpoints.up("sm")]: {
-            paddingInline: theme.spacing(3),
-            paddingBlock: theme.spacing(2),
+            padding: theme.spacing(2),
         },
     },
 
+    emptyState: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: theme.spacing(4, 2),
+        color: fade(theme.palette.text.primary, 0.65),
+        "& svg": {
+            fontSize: 40,
+            color: fade(theme.palette.primary.main, 0.5),
+            marginBottom: theme.spacing(1),
+        },
+    },
+
+    emptyTitle: {
+        fontWeight: 600,
+        color: theme.palette.text.primary,
+    },
     itemContainer: {
         cursor: "pointer",
         transition: "all 0.3s ease",
-        borderRadius: 8,
+        borderRadius: 10,
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
         "&:hover": {
             backgroundColor: fade(theme.palette.primary.main, 0.08),
         },
@@ -34,6 +53,8 @@ const useStyles = makeStyles((theme) => ({
         cursor: "pointer",
         backgroundColor: fade(theme.palette.primary.main, 0.15),
         borderLeft: `4px solid ${theme.palette.primary.main}`,
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
         borderRadius: 8,
         animation: "$pulse 2s infinite",
         transition: "all 0.3s ease",
@@ -52,9 +73,11 @@ const useStyles = makeStyles((theme) => ({
     },
 
     image: {
-        height: 50,
-        width: 50,
-        borderRadius: 30,
+        height: 46,
+        width: 46,
+        borderRadius: "50%",
+        objectFit: "cover",
+        boxShadow: "0 3px 8px rgba(0,0,0,0.18)",
     },
 }));
 
@@ -84,8 +107,10 @@ export default function RecentlyPlayed() {
     return (
         <Paper variant="outlined" className={classes.mainContainer}>
             {recentlyPlayed.length === 0 && (
-                <Box display="flex" justifyContent="center" alignItems="center" my={10}>
-                    No recent audios...
+                <Box className={classes.emptyState}>
+                    <HeadsetRoundedIcon />
+                    <span className={classes.emptyTitle}>No recent audios yet</span>
+                    <span>Lectures you play will show up here.</span>
                 </Box>
             )}
             {recentlyPlayed

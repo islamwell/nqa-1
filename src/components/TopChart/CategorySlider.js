@@ -16,11 +16,14 @@ import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { changeSubCatsVisible } from "../../store/slices/favoriteSlice";
 import { changeURL } from "../../store/slices/playerSlice";
+import CategoryRoundedIcon from "@material-ui/icons/CategoryRounded";
+import SectionHeader from "../SectionHeader";
 
 
 
 const useStyles = makeStyles((theme) => ({
   root: {
+    marginTop: theme.spacing(3),
     marginBottom: theme.spacing(2),
 
     [theme.breakpoints.down("xs")]: {
@@ -35,8 +38,10 @@ const useStyles = makeStyles((theme) => ({
   },
 
   image: {
-    boxShadow: "0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%)",
-    borderRadius: 15,
+    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.18)",
+    borderRadius: 18,
+    objectFit: "cover",
+    transition: "transform 0.25s ease, box-shadow 0.25s ease",
     width: 150,
     height: 150,
 
@@ -55,6 +60,10 @@ const useStyles = makeStyles((theme) => ({
     width: 150,
     fontSize: theme.typography.fontSize,
     padding: theme.spacing(0),
+    "&:hover $image": {
+      transform: "translateY(-3px)",
+      boxShadow: `0 10px 22px ${fade(theme.palette.primary.dark, 0.3)}`,
+    },
     [theme.breakpoints.down("xs")]: {
       width: 120,
     },
@@ -80,8 +89,21 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: 10,
 
 },
+  sliderLabel: {
+    fontWeight: 600,
+    color: theme.palette.text.primary,
+    lineHeight: 1.3,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    padding: theme.spacing(1, 0.5, 0, 0.5),
+  },
   sliderWrapper: {
     position: "relative",
+    "& .slick-slide > div": {
+      padding: theme.spacing(0.5, 0, 1, 0),
+    },
     '& .slick-prev, & .slick-next': {
       zIndex: 5,
       width: 36,
@@ -370,9 +392,7 @@ export default function CategorySlider({ data, getMore }) {
 
   return (
     <div className={classes.root}>
-      <Box className={classes.title} my={2} ml={1} fontSize="h4.fontSize" fontWeight="fontWeightBold">
-        Categories
-      </Box>
+      <SectionHeader icon={<CategoryRoundedIcon />} title="Categories" subtitle="Browse lecture series and topics" />
       <div onClick={getMore} >
         <div className={classes.sliderWrapper}>
           {/* Wide, full-height click zones for easy navigation */}
@@ -410,10 +430,8 @@ export default function CategorySlider({ data, getMore }) {
                 </Box>
                 <Box
                   onClick={(e) => handleSliderItemClick(e, item)}
+                  className={classes.sliderLabel}
                   textAlign="center"
-                  textOverflow="ellipsis"
-                  overflow="hidden"
-                  py={1}
                   fontSize={12}
                 >
                   {item.name}
