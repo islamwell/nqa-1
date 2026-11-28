@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { fade, makeStyles } from "@material-ui/core/styles";
 import { Box, IconButton, Paper } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
 import { changeURL } from "../../store/slices/playerSlice";
@@ -15,13 +15,16 @@ const useStyles = makeStyles((theme) => ({
 
   mainContainer: {
     display: "flex",
-    marginBottom: theme.spacing(2),
-    borderRadius: 10,
+    marginBottom: theme.spacing(1.5),
+    borderRadius: 14,
     overflow: "hidden",
-    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+    borderColor: fade(theme.palette.primary.main, 0.14),
+    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out",
     "&:hover": {
       transform: "translateY(-2px)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      borderColor: fade(theme.palette.primary.main, 0.35),
+      boxShadow: `0 8px 20px ${fade(theme.palette.primary.dark, 0.14)}`,
     },
 
     [theme.breakpoints.down("sm")]: {
@@ -41,6 +44,8 @@ const useStyles = makeStyles((theme) => ({
   title: {
     cursor: "pointer",
     width: "100%",
+    fontWeight: 600,
+    lineHeight: 1.35,
     [theme.breakpoints.down("sm")]: {
       fontSize: 14,
     },
@@ -55,9 +60,15 @@ const useStyles = makeStyles((theme) => ({
     width: 26,
   },
   image: {
-    height: 100,
-    width: 100,
+    height: 96,
+    width: 96,
     flexShrink: 0,
+    objectFit: "cover",
+    [theme.breakpoints.down("xs")]: {
+      height: 88,
+      width: 76,
+      fontSize: "1.5rem !important",
+    },
   },
 
   buttonOutline: {
