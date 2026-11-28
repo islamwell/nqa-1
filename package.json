@@ -2,6 +2,7 @@
   "name": "pwa-app",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "dependencies": {
     "@actions/core": "^1.4.0",
     "@actions/github": "^5.0.0",
@@ -45,7 +46,7 @@
   },
   "scripts": {
     "start": "NODE_OPTIONS=--openssl-legacy-provider craco start",
-    "build": "GENERATE_SOURCEMAP=false NODE_OPTIONS=--openssl-legacy-provider craco build",
+    "build": "CI=false GENERATE_SOURCEMAP=false NODE_OPTIONS=--openssl-legacy-provider craco build",
     "test": "NODE_OPTIONS=--openssl-legacy-provider craco test --passWithNoTests",
     "eject": "craco eject"
   },
